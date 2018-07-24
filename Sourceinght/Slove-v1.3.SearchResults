@@ -1,0 +1,8 @@
+---- SrvAckRequested Matches (8 in 1 files) ----
+LoRaMac.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\slove-v1.3\lib\lorawan-node\mac):static bool SrvAckRequested = false;
+LoRaMac.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\slove-v1.3\lib\lorawan-node\mac):									SrvAckRequested = true;
+LoRaMac.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\slove-v1.3\lib\lorawan-node\mac):											SrvAckRequested = true;
+LoRaMac.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\slove-v1.3\lib\lorawan-node\mac):											SrvAckRequested = false;
+LoRaMac.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\slove-v1.3\lib\lorawan-node\mac):            DEBUG(2,"SrvAckRequested : %d\r\n",SrvAckRequested);
+LoRaMac.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\slove-v1.3\lib\lorawan-node\mac):            if( SrvAckRequested == true )
+LoRaMac.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\slove-v1.3\lib\lorawan-node\mac):                SrvAckRequested = false;
