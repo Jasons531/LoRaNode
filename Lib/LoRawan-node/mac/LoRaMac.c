@@ -768,16 +768,17 @@ void OnRadioCadDone( bool channelActivityDetected )
 {
 	if(channelActivityDetected == true)
 	{
-        LoRapp_Handle.Cad_Detect = true;
+    LoRapp_Handle.Cad_Detect = true;
+    LoRapp_Handle.Cad_Done = false;
 		DEBUG(2,"Cad_State3333 = Cad_Detect \r\n");
 	}else
 	{
-        LoRapp_Handle.Cad_Done = true;
+    LoRapp_Handle.Cad_Done = true;
+    LoRapp_Handle.Cad_Detect = false;
 		DEBUG(2,"Cad_State3333 = CadDone \r\n");
 	}
 }
 
-uint32_t rx1time = 0;
 static void OnRadioTxDone( void )
 {
     TimerTime_t curTime = TimerGetCurrentTime( );
@@ -806,13 +807,13 @@ static void OnRadioTxDone( void )
 
     if( IsRxWindowsEnabled == true )
     {
-    	DEBUG(2, "IsRxWindowsEnabled is true RxWindow1Delay : %d\r\n",RxWindow1Delay);
+				DEBUG(2, "IsRxWindowsEnabled is true RxWindow1Delay : %d\r\n",RxWindow1Delay);
         TimerSetValue( &RxWindowTimer1, RxWindow1Delay );
         TimerStart( &RxWindowTimer1 );		
 				
        	if( LoRaMacDeviceClass != CLASS_C )
        	{
-       		DEBUG(2, "RxWindow2Delay : %d\r\n",RxWindow2Delay);
+						DEBUG(2, "RxWindow2Delay : %d\r\n",RxWindow2Delay);
             TimerSetValue( &RxWindowTimer2, RxWindow2Delay ); 					
             TimerStart( &RxWindowTimer2 );
 		}
@@ -827,7 +828,7 @@ static void OnRadioTxDone( void )
     }
     else
     {
-    	DEBUG(2, "IsRxWindowsEnabled is false\r\n");
+				DEBUG(2, "IsRxWindowsEnabled is false\r\n");
         McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_OK;
         MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
 
@@ -854,7 +855,7 @@ static void PrepareRxDoneAbort( void )
 {
     LoRaMacState &= ~MAC_TX_RUNNING;
 
-	DEBUG(2,"LoRaMacState &= ~MAC_TX_RUNNING--1\r\n");
+		DEBUG(2,"LoRaMacState &= ~MAC_TX_RUNNING--1\r\n");
 
     Radio.Standby( );
 
@@ -1729,12 +1730,12 @@ void OnRxWindow2TimerEvent( void )
 {
 	DEBUG(2,"func: %s\r\n",__func__);
 	int8_t datarate = 0;
-    uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
-    uint32_t bandwidth = 0; // LoRa 125 kHz
+	uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
+	uint32_t bandwidth = 0; // LoRa 125 kHz
 
-    TimerStop( &RxWindowTimer2 );
-    RxSlot = 1;
-	
+	TimerStop( &RxWindowTimer2 );
+	RxSlot = 1;
+
 	///add by Ysheng Start
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
@@ -1772,27 +1773,27 @@ void OnRxWindow2TimerEvent( void )
     #error "Please define a frequency band in the compiler options."
 #endif
 		
-		uint32_t Freq = Channels[Channel].Frequency;
-		Freq += 3e7;
-		
-    if( LoRaMacDeviceClass != CLASS_C ) ///网关应答A类
-    {
-        RxWindowSetup( Freq, datarate, bandwidth, symbTimeout, true );
-				DEBUG(2,"RX2Frequency = %d, Datarate = %d\r\n",Freq,datarate);
-    }
-    else
-    {
-				if( LoRapp_Handle.Work_Mode == CSMA ) ///侦听模式：同频
-				{
-					RxWindowSetup( Channels[Channel].Frequency, datarate, bandwidth, symbTimeout, true );
-					DEBUG(2,"RX2Frequency CSMA = %d, Datarate = %d\r\n",Channels[Channel].Frequency,datarate);
-				}
-				else ///网关通讯
-				{
-					 RxWindowSetup( Freq, datarate, bandwidth, symbTimeout, true );
-					 DEBUG(2,"RX2Frequency CAD = %d, Datarate = %d\r\n",Freq,datarate);
-				}			
-    }
+	uint32_t Freq = Channels[Channel].Frequency;
+	Freq += 3e7;
+	
+	if( LoRaMacDeviceClass != CLASS_C ) ///网关应答A类
+	{
+		RxWindowSetup( Freq, datarate, bandwidth, symbTimeout, true );
+		DEBUG(2,"RX2Frequency = %d, Datarate = %d\r\n",Freq,datarate);
+	}
+	else
+	{
+		if( LoRapp_Handle.Work_Mode == CSMA ) ///侦听模式：同频
+		{
+			RxWindowSetup( Channels[Channel].Frequency, datarate, bandwidth, symbTimeout, true );
+			DEBUG(2,"RX2Frequency CSMA = %d, Datarate = %d\r\n",Channels[Channel].Frequency,datarate);
+		}
+		else ///网关通讯
+		{
+			 RxWindowSetup( Freq, datarate, bandwidth, symbTimeout, true );
+			 DEBUG(2,"RX2Frequency CAD = %d, Datarate = %d\r\n",Freq,datarate);
+		}			
+	}
 }
 
 static void OnAckTimeoutTimerEvent( void )
@@ -1979,12 +1980,12 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 					
 						if(Csma.Iq_Invert) ///点对点：作区分：sleep mode and working mode have different preamblelen 
 						{
-							 Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 202, timeout, false, 0, false, 0, 0, false, rxContinuous ); //false -- P2P
+							 Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 142, timeout, false, 0, false, 0, 0, false, rxContinuous ); //false -- P2P
 							 DEBUG(2,"Radio.SetRxConfig\r\n");
 						}
 						else
 						{
-							Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 20, timeout, false, 0, false, 0, 0, true, rxContinuous ); //true---GW
+							Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous ); //true---GW
 						}
 //            Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         }
@@ -2879,7 +2880,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     McpsConfirm.TxTimeOnAir = TxTimeOnAir;
     MlmeConfirm.TxTimeOnAir = TxTimeOnAir;
 
-	DEBUG(2,"McpsConfirm.TxTimeOnAir = %d, MlmeConfirm.TxTimeOnAir = %d\r\n",McpsConfirm.TxTimeOnAir,MlmeConfirm.TxTimeOnAir);
+		DEBUG(2,"McpsConfirm.TxTimeOnAir = %d, MlmeConfirm.TxTimeOnAir = %d\r\n",McpsConfirm.TxTimeOnAir,MlmeConfirm.TxTimeOnAir);
 
     // Starts the MAC layer status check timer
     TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT );

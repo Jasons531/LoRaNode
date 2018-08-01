@@ -12,31 +12,17 @@
 
 void EXTI0_1_IRQHandler( void )
 {
-#if !defined( USE_NO_TIMER )
- //   RtcRecoverMcuStatus( );
-#endif
-	
   HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_1 );
-
 }
 
 void EXTI2_3_IRQHandler( void )
 {
-#if !defined( USE_NO_TIMER )
- //   RtcRecoverMcuStatus( );
-#endif
-	
-  HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_2 );
-	
+  HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_2 );	
 }
 
 
 void EXTI4_15_IRQHandler( void )
 {
-#if !defined( USE_NO_TIMER )
- //   RtcRecoverMcuStatus( );
-#endif
-	
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_4 );
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_5 );
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_6 );
@@ -49,7 +35,6 @@ void EXTI4_15_IRQHandler( void )
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_13 );
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_14 );
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_15 );
-
 }
 
 
@@ -106,4 +91,10 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
 		SX1276OnDio2Irq(  );	
 		DEBUG(2,"SX1276OnDio2Irq\r\n");
 	}
+//	else if(GPIO_Pin == GPIO_PIN_11)
+//	{
+//		SX1276OnDio3Irq(  );	
+//		SX1276.Settings.State = RF_RX_RUNNING;
+//		DEBUG(2,"SX1276OnDio3Irq\r\n");
+//	}
 }

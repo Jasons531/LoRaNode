@@ -21,13 +21,13 @@ extern uint32_t RfSend_time;
 
 typedef struct LoRaCsmas
 {
-		bool Iq_Invert;///node to node 
-		bool Listen;   ///侦听标志
-		bool Ack;   ///数据过滤
+	bool 			Iq_Invert;///node to node 
+	bool 			Listen;   ///侦听标志
+	bool 			Ack;   ///数据过滤
 
-		uint8_t  DisturbCounter; ///侦听计数
-	  uint8_t  retry;          ///侦听最大次数
-    uint32_t symbolTime;     ///preamblelen time
+	uint8_t  	DisturbCounter; ///侦听计数
+	uint8_t  	retry;          ///侦听最大次数
+	float   	symbolTime;     ///preamblelen time
 }LoRaCsma_t;
 
 typedef struct //sLoRaMacCsma
@@ -40,7 +40,7 @@ typedef struct //sLoRaMacCsma
 }LoRaMacCsma_t;
 
 extern LoRaCsma_t Csma;
-extern LoRaMacCsma_t LoRaMacCsma;
+extern const LoRaMacCsma_t LoRaMacCsma;
 
 extern uint8_t Channel; ///信道号
 
@@ -48,15 +48,13 @@ extern TimerEvent_t CsmaTimer;
 
 void OnCsmaTimerEvent( void );
 
-void LoRaMacCsmaInit(void);
+void LoRaChannelAddFun( void );
 
-void UserChannelAddFun( void );
+void LoRaCadMode( void );
 
-void UserCadMode(void);
+float LoRaSymbolTime( void );
 
-float UserSymbolTime(void);
-
-void UserListenAagain(void);
+void LoRaListenAagain( void );
 
 #endif /* __LoRa-cad_H */
 

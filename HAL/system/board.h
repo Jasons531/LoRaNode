@@ -42,6 +42,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "bq24195.h"
 #include "power.h"
 #include "debug.h"
+#include "led.h"
 #include "sx1276/sx1276.h"
 #include "rtc-board.h"
 #include "timer-board.h"

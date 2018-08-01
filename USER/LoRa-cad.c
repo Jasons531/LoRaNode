@@ -55,7 +55,7 @@ LoRaCsma_t Csma = {true, false, false, 0, 2, 0};
 
 uint32_t RfSend_time = 0;
 
-LoRaMacCsma_t LoRaMacCsma;
+const LoRaMacCsma_t LoRaMacCsma = {LoRaChannelAddFun, LoRaSymbolTime, LoRaListenAagain, LoRaCadMode};
 
 TimerEvent_t CsmaTimer;
 void OnCsmaTimerEvent( void )
@@ -66,24 +66,11 @@ void OnCsmaTimerEvent( void )
 }
 
 /*
-*LoRaMacCsmaInit：模式初始化
-*参数：						无
-*返回值：					无
-*/
-void LoRaMacCsmaInit(void)
-{
-	LoRaMacCsma.ChannelAddFun = UserChannelAddFun; 
-	LoRaMacCsma.ListenAagain = UserListenAagain;   
-	LoRaMacCsma.SymbolTime = UserSymbolTime;
-	LoRaMacCsma.CadMode = UserCadMode;
-}
-
-/*
 *ChannelAddFun：增加设备频段
 *参数：         无
 *返回值：       无
 */
-void UserChannelAddFun( void )
+void LoRaChannelAddFun( void )
 {
 	LoRaMacChannelAdd( 3, ( ChannelParams_t )LC4  );
 	LoRaMacChannelAdd( 4, ( ChannelParams_t )LC5  );
@@ -120,22 +107,22 @@ void UserChannelAddFun( void )
 }
 
 /*
- * UserCadMode:	 设置为CAD
+ * LoRaCadMode:	 设置为CAD
  * 参数:	     无
  * 返回值:		 无
 */
-void UserCadMode(void)
+void LoRaCadMode(void)
 {
 	Radio.Sleep(  );     
 	Radio.StartCad(  );  
 }
 
 /*
- * UserSymbolTime:	获取SymbolTime
+ * LoRaSymbolTime:	获取SymbolTime
  * 参数:	     			无
  * 返回值:		      SymbolTime
 */
-float UserSymbolTime(void)
+float LoRaSymbolTime(void)
 {
 	Csma.symbolTime = 0;
 	uint8_t LORA_SPREADING_FACTOR = 0;
@@ -153,15 +140,15 @@ float UserSymbolTime(void)
 	else 
 		LORA_SPREADING_FACTOR = 7;
 	
-	 Csma.symbolTime = (( pow( (float)2, (float)LORA_SPREADING_FACTOR ) ) + 32 ) / 125;  // SF7 and BW = 125 KHz
-	 DEBUG(2,"LORA_SPREADING_FACTOR = %d symbolTime = %d\r\n",LORA_SPREADING_FACTOR,Csma.symbolTime);
+	 Csma.symbolTime = ( pow( (float)2, (float)LORA_SPREADING_FACTOR ) ) / 125;  // SF7 and BW = 125 KHz
+	 DEBUG(2,"LORA_SPREADING_FACTOR = %d symbolTime = %0.1f\r\n",LORA_SPREADING_FACTOR,Csma.symbolTime);
 	 return Csma.symbolTime;
 }
 
 /*
 *ListenAagain: 随机发送期间侦听到信号，则规避，下个随机时间再发送数据
 */
-void UserListenAagain(void)
+void LoRaListenAagain(void)
 {
 	if(!Csma.Listen && Csma.DisturbCounter < Csma.retry)
 	{	 

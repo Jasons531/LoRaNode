@@ -65,8 +65,8 @@ void RtcInit(void)
     */
   RtcHandle.Instance = RTC;
   RtcHandle.Init.HourFormat = RTC_HOURFORMAT_24;
-  RtcHandle.Init.AsynchPrediv = 127;
-  RtcHandle.Init.SynchPrediv = 255;
+  RtcHandle.Init.AsynchPrediv = 127; ///127    64 -- 10ms
+  RtcHandle.Init.SynchPrediv = 25; ///255      4  -- 10ms
   RtcHandle.Init.OutPut = RTC_OUTPUT_DISABLE;
   RtcHandle.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
   RtcHandle.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;

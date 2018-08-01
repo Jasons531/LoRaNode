@@ -1,0 +1,7 @@
+---- test_sleep Matches (6 in 3 files) ----
+Main.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\loranode-v1.3\user):bool test_sleep = false;
+Main.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\loranode-v1.3\user):		if(!test_sleep)
+Sx1276.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\loranode-v1.3\lib\lorawan-node\radio\sx1276):extern bool test_sleep;
+Sx1276.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\loranode-v1.3\lib\lorawan-node\radio\sx1276):				test_sleep = true;
+User-app.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\loranode-v1.3\user):extern bool test_sleep;
+User-app.c (e:\nbi项目\nbi_lora\nbi_lora代码\新版灌溉\loranode-v1.3\user):		test_sleep = false;

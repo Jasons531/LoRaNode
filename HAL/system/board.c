@@ -1,36 +1,14 @@
 /*
- / _____)             _              | |
-( (____  _____ ____ _| |_ _____  ____| |__
- \____ \| ___ |    (_   _) ___ |/ ___)  _ \
- _____) ) ____| | | || |_| ____( (___| | | |
-(______/|_____)_|_|_| \__)_____)\____)_| |_|
-    (C)2013 Semtech
-
-Description: Target board general functions implementation
-
-License: Revised BSD License, see LICENSE.TXT file include in the project
-
-Maintainer: Miguel Luis and Gregory Cristian
+**************************************************************************************************************
+*	@file			board.c
+*	@author 	Jason.Yan
+*	@version  V0.1
+*	@date     2018/07/24
+*	@brief	
+* @connect  Jason_531@163.com
+***************************************************************************************************************
 */
 #include "board.h"
-
-/*!
- * Battery level ratio (battery dependent)
- */
-#define BATTERY_STEP_LEVEL                0.23
-
-#define CLOCK_16MHZ						  1
-
-
-#if defined( USE_USB_CDC )
-Uart_t UartUsb;
-#endif
-
-/*!
- * Flag to indicate if the MCU is Initialized
- */
-
-bool sendwkup = false;
 
 static bool McuInitialized = false;
 
@@ -42,44 +20,44 @@ void BoardInitMcu( void )
 {
    if( McuInitialized == false )
    {
-        HAL_Init( );
+			HAL_Init( );
 
-        /***************时钟初始化********************/
-        SystemClockConfig( );
-      
-        RtcInit( );  
-       
-        TimerHwInit(  );
-       
-        /***************SX1276 I/O初始化********************/
-        SX1276IoInit( );
+			/***************时钟初始化********************/
+			SystemClockConfig( );
+		
+			RtcInit( );  
+		 
+			TimerHwInit(  );
+		 
+			/***************SX1276 I/O初始化********************/
+			SX1276IoInit( );
 
-        /***************LoRa电源控制 I/O初始化********************/
-        LoRaPower_Init( );
+			/***************LoRa电源控制 I/O初始化********************/
+			LoRaPower_Init( );
 
-        /****************SPI初始化*******************/
-        SPI1_NSS( );						///片选初始化
-                    
-        SPI1_Init( );					///SPI初始化	
-     
-        McuInitialized = true;        
+			/****************SPI初始化*******************/
+			SPI1_NSS( );						///片选初始化
+									
+			SPI1_Init( );					///SPI初始化	
+	 
+			McuInitialized = true;        
    }
    else
    {
-        SystemClockReConfig( );
-       
-        TimerHwInit(  );
-       
-        /***************SX1276 I/O初始化********************/
-        SX1276IoInit(  );
+			SystemClockReConfig( );
+		 
+			TimerHwInit(  );
+		 
+			/***************SX1276 I/O初始化********************/
+			SX1276IoInit(  );
 
-        /***************LoRa电源控制 I/O初始化********************/
-        LoRaPower_Init(  );
+			/***************LoRa电源控制 I/O初始化********************/
+			LoRaPower_Init(  );
 
-        /****************SPI初始化*******************/
-        SPI1_NSS(  );						///片选初始化
-                    
-        SPI1_Init(  );	
+			/****************SPI初始化*******************/
+			SPI1_NSS(  );						///片选初始化
+									
+			SPI1_Init(  );	
 //        Radio.Init( RadioEvents );
    }
     __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -112,33 +90,35 @@ void BoardInitMcu( void )
 		ReadFlashData(  );
 
 		clock_init(  );
-		
-		LoRaMacCsmaInit(  );
-		
+				
     printf("BoardInitMcu\r\n");       
 }
 
 uint32_t BoardGetRandomSeed( void )
 {
-    return ( ( *( uint32_t* )ID1 ) ^ ( *( uint32_t* )ID2 ) ^ ( *( uint32_t* )ID3 ) );
+	return ( ( *( uint32_t* )ID1 ) ^ ( *( uint32_t* )ID2 ) ^ ( *( uint32_t* )ID3 ) );
 }
 
+/*
+ *	BoardGetUniqueId:	获取MCU UID
+ *  参数						：保存UID缓存区
+ *	返回值					: 无
+ */
 void BoardGetUniqueId( uint8_t *id )
 {
-    id[7] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 24;
-    id[6] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 16;
-    id[5] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 8;
-    id[4] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) );
-    id[3] = ( ( *( uint32_t* )ID2 ) ) >> 24;
-    id[2] = ( ( *( uint32_t* )ID2 ) ) >> 16;
-    id[1] = ( ( *( uint32_t* )ID2 ) ) >> 8;
-    id[0] = ( ( *( uint32_t* )ID2 ) );
+	id[7] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 24;
+	id[6] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 16;
+	id[5] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) ) >> 8;
+	id[4] = ( ( *( uint32_t* )ID1 )+ ( *( uint32_t* )ID3 ) );
+	id[3] = ( ( *( uint32_t* )ID2 ) ) >> 24;
+	id[2] = ( ( *( uint32_t* )ID2 ) ) >> 16;
+	id[1] = ( ( *( uint32_t* )ID2 ) ) >> 8;
+	id[0] = ( ( *( uint32_t* )ID2 ) );
 }
-
 
 /**
   * @brief 系统时钟初始化
-  * @param 外部时钟72MHZ
+  * @param 外部时钟16MHZ
   * @retval None
   */
 void SystemClockConfig( void )
@@ -149,13 +129,11 @@ void SystemClockConfig( void )
 
     /**Configure the main internal regulator output voltage 
     */
-#if CLOCK_16MHZ
-
   /**Configure the main internal regulator output voltage 
     */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
     
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
+//  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
  
 
 	/**Initializes the CPU, AHB and APB busses clocks 
@@ -197,10 +175,13 @@ void SystemClockConfig( void )
   }
 
   delay_init(16);
-	
- #endif
 }
 
+/**
+  * @brief 系统时钟恢复
+  * @param 外部时钟16MHZ
+  * @retval None
+  */
 void SystemClockReConfig( void )
 {
     __HAL_RCC_PWR_CLK_ENABLE( );
@@ -233,7 +214,6 @@ void SystemClockReConfig( void )
     HAL_ResumeTick();
 }
 
-
 /*
  *	BoardSleep:	进入低功耗模式：SLEEP 模式
  *	返回值: 				无
@@ -264,13 +244,13 @@ void BoardSleep( void )
 
     HAL_GPIO_Init(GPIOA, &GPIO_InitStructure); 
     
-	///PB3 4 5 6 10 11 13 14 15空闲IO设置为模拟输入模式
-	GPIO_InitStructure.Pin = 0xEC78;  
-	GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
-	GPIO_InitStructure.Pull = GPIO_NOPULL;
-	GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_HIGH;
-	
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+		///PB3 4 5 6 10 11 13 14 15空闲IO设置为模拟输入模式
+		GPIO_InitStructure.Pin = 0xEC78;  
+		GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
+		GPIO_InitStructure.Pull = GPIO_NOPULL;
+		GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_HIGH;
+		
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     GPIO_InitStructure.Pin = GPIO_PIN_5;  ///  PA8 15  |GPIO_PIN_9|GPIO_PIN_13|GPIO_PIN_14
     GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_OD; //开漏
@@ -329,11 +309,11 @@ void BoardDeInitMcu( void )
     
     HAL_NVIC_DisableIRQ(EXTI0_1_IRQn);             //使能中断线2
 	
-	//中断线3-PC3
-	HAL_NVIC_DisableIRQ(EXTI2_3_IRQn);             //使能中断线3
-	
-	//中断线4-PC15
-	HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);     
+		//中断线3-PC3
+		HAL_NVIC_DisableIRQ(EXTI2_3_IRQn);             //使能中断线3
+		
+		//中断线4-PC15
+		HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);     
        
 #if 1
 
@@ -347,10 +327,10 @@ void BoardDeInitMcu( void )
     HAL_GPIO_Init(GPIOH, &GPIO_InitStructure);
             
     GPIO_InitStructure.Pin = 0xEDFF;  /// PB9：CH_CE(ok)/PB5：485_DE/PB0: RESET/PB1: DIO0 保留充电IO配置
-	GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
-	GPIO_InitStructure.Pull = GPIO_PULLDOWN;
-	GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_LOW;	
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+		GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
+		GPIO_InitStructure.Pull = GPIO_PULLDOWN;
+		GPIO_InitStructure.Speed     = GPIO_SPEED_FREQ_LOW;	
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
     
 #endif
         

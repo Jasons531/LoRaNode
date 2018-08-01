@@ -1165,7 +1165,7 @@ void SX1276StartCad( void )
                                           
             //DIO0=CADDone   DIO1=CADDETECTED : DIO0响应较慢，改为DIO3触发 & RFLR_DIOMAPPING1_DIO3_MASK  ) | RFLR_DIOMAPPING1_DIO3_00 
 					  SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK  ) | RFLR_DIOMAPPING1_DIO0_10 );   //DIO0
-//						SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK  ) | RFLR_DIOMAPPING1_DIO3_00 );
+//						SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK  ) | RFLR_DIOMAPPING1_DIO3_00 ); ///DIO3
 						SX1276.Settings.State = RF_CAD;
             SX1276SetOpMode( RFLR_OPMODE_CAD );
         }
@@ -1617,12 +1617,12 @@ void SX1276OnDio0Irq( void )
 				
 				OnRadioCadDone( true );		
 				
-				SX1276.Settings.State = RF_IDLE;
+//				SX1276.Settings.State = RF_IDLE;
 				
-				Radio.Standby(  );
-				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式	
+//				Radio.Standby(  );
+//				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式	
 								
-				SX1276.Settings.State = RF_RX_RUNNING;
+//				SX1276.Settings.State = RF_RX_RUNNING;
 			}
 			else
 			{        
@@ -1781,25 +1781,34 @@ void SX1276OnDio2Irq( void )
 
 void SX1276OnDio3Irq( void )
 {
-	  DEBUG(3,"%s\r\n",__func__);
+	  DEBUG(2,"%s\r\n",__func__);
     switch( SX1276.Settings.Modem )
     {
     case MODEM_FSK:
         break;
     case MODEM_LORA:
-        if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
-        {
-            // Clear Irq
-            SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
-         
-            OnRadioCadDone( true );							
-        }
-        else
-        {        
-            // Clear Irq
-            SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );			
-            OnRadioCadDone( false );
-        }
+		   if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
+			{				
+				test_sleep = true;
+
+				// Clear Irq
+				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
+				
+				OnRadioCadDone( true );		
+				
+//				SX1276.Settings.State = RF_IDLE;
+				
+//				Radio.Standby(  );
+//				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式	
+								
+//				SX1276.Settings.State = RF_RX_RUNNING;
+			}
+			else
+			{        
+				// Clear Irq
+				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );			
+				OnRadioCadDone( false );
+			}
         break;
     default:
         break;
