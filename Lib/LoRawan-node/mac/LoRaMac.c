@@ -770,7 +770,7 @@ void OnRadioCadDone( bool channelActivityDetected )
 	{
     LoRapp_Handle.Cad_Detect = true;
     LoRapp_Handle.Cad_Done = false;
-		DEBUG(2,"Cad_State3333 = Cad_Detect \r\n");
+		DEBUG(3,"Cad_State3333 = Cad_Detect \r\n");
 	}else
 	{
     LoRapp_Handle.Cad_Done = true;
@@ -1730,7 +1730,7 @@ void OnRxWindow1TimerEvent( void )
 
 void OnRxWindow2TimerEvent( void )
 {
-	DEBUG(2,"func: %s\r\n",__func__);
+	DEBUG(3,"func: %s\r\n",__func__);
 	int8_t datarate = 0;
 	uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
 	uint32_t bandwidth = 0; // LoRa 125 kHz
@@ -1793,7 +1793,7 @@ void OnRxWindow2TimerEvent( void )
 		else ///网关通讯
 		{
 			 RxWindowSetup( Freq, datarate, bandwidth, symbTimeout, true );
-			 DEBUG(2,"RX2Frequency CAD = %d, Datarate = %d\r\n",Freq,datarate);
+			 DEBUG(3,"RX2Frequency CAD = %d, Datarate = %d\r\n",Freq,datarate);
 		}			
 	}
 }
@@ -1983,7 +1983,7 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 						if(Csma.Iq_Invert) ///点对点：作区分：sleep mode and working mode have different preamblelen 
 						{
 							 Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 136, timeout, false, 0, false, 0, 0, false, rxContinuous ); //false -- P2P
-							 DEBUG(2,"Radio.SetRxConfig\r\n");
+							 DEBUG(3,"Radio.SetRxConfig\r\n");
 						}
 						else
 						{
@@ -2007,12 +2007,12 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 
         if( rxContinuous == false )
         {
-						DEBUG(2,"Radio.MaxRxWindow: %d\r\n",MaxRxWindow);
+						DEBUG(3,"Radio.MaxRxWindow: %d\r\n",MaxRxWindow);
             Radio.Rx( MaxRxWindow ); 
         }
         else
         {
-					DEBUG(2,"Radio.Rx\r\n");
+					DEBUG(3,"Radio.Rx\r\n");
 					if(LoRapp_Handle.Work_Mode == CSMA) ///侦听状态也处于TX，生成超时机制
             Radio.Rx( MaxRxWindow ); // Continuous mode
 					else

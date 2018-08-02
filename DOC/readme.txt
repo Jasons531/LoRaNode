@@ -131,3 +131,9 @@ TimerStart( &RxWindowTimer1 );
 
 LoRapp_Handle.Work_Mode = CSMA;
 
+
+LoRaMacTestRxWindowsOn( false );：关闭接收窗口
+LoRaMacSetReceiveDelay1( 200 );  ///窗口1开启时间
+LoRaMacSetReceiveDelay2( 200 );  ///窗口2开启时间
+
+

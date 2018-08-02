@@ -54,7 +54,7 @@ typedef struct RtcCalendar_s
 
 /***********************************以下为RTC底层代码部分***************************************/
 
-
+/////40khz内部晶振，分频:19/19----100hz ---- 10ms     36/99 --- 10hz --- 100ms
 /* RTC init function */
 void RtcInit(void)
 {
@@ -65,8 +65,8 @@ void RtcInit(void)
     */
   RtcHandle.Instance = RTC;
   RtcHandle.Init.HourFormat = RTC_HOURFORMAT_24;
-  RtcHandle.Init.AsynchPrediv = 127; ///127    64 -- 10ms
-  RtcHandle.Init.SynchPrediv = 25; ///255      4  -- 10ms
+  RtcHandle.Init.AsynchPrediv = 36; ///127    64 -- 10ms   127  --- 100ms
+  RtcHandle.Init.SynchPrediv = 99; ///255      4  -- 10ms   25   --- 100ms
   RtcHandle.Init.OutPut = RTC_OUTPUT_DISABLE;
   RtcHandle.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
   RtcHandle.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;

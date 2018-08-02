@@ -58,6 +58,10 @@ void BoardInitMcu( void )
 			SPI1_NSS(  );						///片选初始化
 									
 			SPI1_Init(  );	
+		 
+		  /*******************开启RTC中断*******************/
+			HAL_NVIC_SetPriority(RTC_IRQn, 8, 0);
+			HAL_NVIC_EnableIRQ(RTC_IRQn);
 //        Radio.Init( RadioEvents );
    }
     __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -78,10 +82,6 @@ void BoardInitMcu( void )
 
     /*****************电源管理********************/
     InitPower(  );
-   
-    /*******************开启RTC中断*******************/
-    HAL_NVIC_SetPriority(RTC_IRQn, 3, 0);
-    HAL_NVIC_EnableIRQ(RTC_IRQn);
 
     HAL_NVIC_SetPriority(USART4_5_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(USART4_5_IRQn);
@@ -138,9 +138,9 @@ void SystemClockConfig( void )
 
 	/**Initializes the CPU, AHB and APB busses clocks 
 	*/
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLLMUL_4;
@@ -168,7 +168,7 @@ void SystemClockConfig( void )
                               |RCC_PERIPHCLK_I2C1;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();

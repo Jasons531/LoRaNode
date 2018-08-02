@@ -1011,7 +1011,6 @@ void SX1276SetRx( uint32_t timeout )
                                                   RFLR_IRQFLAGS_CADDONE |
                                                   //RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
                                                   RFLR_IRQFLAGS_CADDETECTED );
-                DEBUG(3,"RxDone\r\n");                
                 // DIO0=RxDone, DIO2=FhssChangeChannel
                 SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK & RFLR_DIOMAPPING1_DIO2_MASK  ) | RFLR_DIOMAPPING1_DIO0_00 | RFLR_DIOMAPPING1_DIO2_00 );
             }
@@ -1025,7 +1024,6 @@ void SX1276SetRx( uint32_t timeout )
                                                   RFLR_IRQFLAGS_CADDONE |
                                                   RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
                                                   RFLR_IRQFLAGS_CADDETECTED );
-                 DEBUG(3,"RxDone\r\n");                                
                 // DIO0=RxDone
                 SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
 							
@@ -1040,13 +1038,13 @@ void SX1276SetRx( uint32_t timeout )
 
     SX1276.Settings.State = RF_RX_RUNNING;
     
-    DEBUG(2,"SX1276.Settings.State = RF_RX_RUNNING %d, Work_Mode = %d\r\n",timeout, LoRapp_Handle.Work_Mode);
+    DEBUG(3,"SX1276.Settings.State = RF_RX_RUNNING %d, Work_Mode = %d\r\n",timeout, LoRapp_Handle.Work_Mode);
     if( timeout != 0 ) 
     {    	
         TimerSetValue( &RxTimeoutTimer, timeout );
         TimerStart( &RxTimeoutTimer );
 
-				DEBUG(2,"RxTimeoutTimer\r\n");
+				DEBUG(3,"RxTimeoutTimer\r\n");
     }
 
     if( SX1276.Settings.Modem == MODEM_FSK )
@@ -1402,8 +1400,6 @@ extern void OnRadioCadDone( bool channelActivityDetected );
 void SX1276OnDio0Irq( void )
 {
 	volatile uint8_t irqFlags = 0;
-
-	DEBUG(2, "SX1276.Settings.State : %d\r\n",SX1276.Settings.State);
 	 
 	switch( SX1276.Settings.State )
 	{                

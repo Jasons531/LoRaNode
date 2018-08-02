@@ -79,7 +79,7 @@ void HAL_GPIO_EXTI_Callback( uint16_t GPIO_Pin )
 	if(GPIO_Pin == GPIO_PIN_1)
 	{
 		SX1276OnDio0Irq(  );	
-		DEBUG(2,"SX1276OnDio0Irq\r\n");
+		DEBUG(3,"SX1276OnDio0Irq\r\n");
 	}
 	else if(GPIO_Pin == GPIO_PIN_2)
 	{

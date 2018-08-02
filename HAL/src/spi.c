@@ -148,7 +148,7 @@ uint32_t SPI1_Read(void)
   HAL_StatusTypeDef status = HAL_OK;
   uint32_t readvalue = 0;
 
-  status = HAL_SPI_Receive(&hspi1, (uint8_t*) &readvalue, 1, 0xFFFFF);
+  status = HAL_SPI_Receive(&hspi1, (uint8_t*) &readvalue, 1, 0xFFFFFFFF);
 
 	/* Check the communication status */
 	if(status != HAL_OK)
@@ -171,7 +171,7 @@ void SPI1_Write(uint8_t Value)
 {
 	HAL_StatusTypeDef status = HAL_OK;
 
-  status = HAL_SPI_Transmit(&hspi1, (uint8_t*) &Value, 1, 0xFFFF);
+  status = HAL_SPI_Transmit(&hspi1, (uint8_t*) &Value, 1, 0xFFFFFFFF);
 	
 	/* Check the communication status */
 	if(status != HAL_OK)

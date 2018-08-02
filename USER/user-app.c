@@ -170,9 +170,10 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 			LoRapp_Handle.Loramac_evt_flag = 1;
 			
 			LoRaMacTestRxWindowsOn( true );
-			LoRaMacSetDeviceClass( CLASS_C );
 //			LoRapp_Handle.Work_Mode = CAD;
 			DEBUG(2,"*********************Done*********************\r\n");
+			
+			LoRaMacSetDeviceClass( CLASS_C );
 			LoRapp_Handle.Cad_Detect = false;
 			RFTXDONE(  );		
 //			SendDoneLed( );
