@@ -143,14 +143,16 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 					mac_callback_g(MAC_STA_RXDONE, &RxInfo);
 					if( RxInfo.size>0 )
 					{
-						DEBUG(2,"RxInfo.buf = ");
+						printf("******************RxInfo.buf = ");
 						for( uint8_t i = 0; i < RxInfo.size; i++ )
 						printf("%c",RxInfo.buf[i]);
-						DEBUG(2,"\r\n");									
+						DEBUG(2,"*********************\r\n");									
 					}				
 				}	
 		}  
 		  memset(RxInfo.buf, 0, strlen((char *)RxInfo.buf));	
+			LoRapp_Handle.Cad_Detect = false;
+			RFTXDONE(  );
 	}
 	 
 	if( flags->Bits.Tx == 1 )
@@ -413,49 +415,6 @@ void AppLoramacJoinreq(void)
 			}
 		}
 	}   
-}
-
-void SendDoneLed(void)
-{
-	for(uint8_t i = 0; i < 5; i++)
-	{
-		GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_SET);
-		delay_ms(50);
-		GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_RESET);
-		delay_ms(50);
-	}
-}
-
-void RxLed(void)
-{
-	for(uint8_t i = 0; i < 5; i++)
-	{
-		GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_SET);
-		delay_ms(50);
-		GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_RESET);
-		delay_ms(50);
-	}
-}
-
-void ErrorLed(void)
-{
-	for(uint8_t i = 0; i < 3; i++)
-	{
-		GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_SET);
-		delay_ms(1000);
-		GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_RESET);
-		delay_ms(200);
-	}
-}
-
-void PowerEnableLed(void)
-{
-	GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_SET);
-}
-
-void PowerDisbleLed(void)
-{
-	GpioWrite(LORA_LED,LORA_LED_PIN,GPIO_PIN_RESET);
 }
 
 /*******************************¶¨Òå·¢ËÍÊý¾Ý************************************/

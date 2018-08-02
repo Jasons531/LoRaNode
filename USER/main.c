@@ -257,20 +257,30 @@ PROCESS_THREAD(Sleep_process,ev,data)
 		if(!test_sleep)
 		{
 			DEBUG(2, "usertime = %d\r\n",HAL_GetTick(  ) - usertime);
-			SetRtcAlarm(1);  ///设置闹钟时间 
-			IntoLowPower(  );  
-
+			
 			LoRaMacCsma.CadMode(  );	
 //			delay_us( 240 ); 
-			uint32_t timecad = LoRaMacCsma.SymbolTime(  ) * 1000 + 240; ///tx preamblelen = 1000+2(LoRaMacCsma.SymbolTime+2.8ms)
-			delay_us( 2*timecad ); 
+			uint32_t timecad = LoRaMacCsma.SymbolTime(  ) * 1000 + 280; ///tx preamblelen = 1000+2(LoRaMacCsma.SymbolTime+2.8ms)
+			timecad *= 2;
+			delay_us( timecad ); 
+			
+			if(LoRapp_Handle.Cad_Detect)
+			{
+				Radio.Standby(  );
+				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式
+
+				DEBUG(2,"-----------------timecad = %d----------\r\n",timecad);
+
+				while(LoRapp_Handle.Cad_Detect);
+			}
+					
+			if(!LoRapp_Handle.Cad_Detect)
+			{
+				DEBUG(2,"-----------------Cad_Done----------\r\n");
+				SetRtcAlarm(10);  ///设置闹钟时间 必须设置为ms，否则会出现时间偏移导致唤醒成功率不高
+				IntoLowPower(  );  
+			}			
 		}
-		else
-		{
-			etimer_stop(&et);
-		}
-		
-		etimer_set(&et,CLOCK_SECOND*0.05);		
 	}
 	
   PROCESS_END(); 
