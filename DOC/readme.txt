@@ -119,3 +119,15 @@ csma.c
 
 
 17101URTU011
+
+
+Radio.Standby(  );
+//			SX1276IsChannelFree
+			Radio.IsChannelFree();
+			OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式	
+
+
+TimerStart( &RxWindowTimer1 );		
+
+LoRapp_Handle.Work_Mode = CSMA;
+

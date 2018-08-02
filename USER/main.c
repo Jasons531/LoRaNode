@@ -258,6 +258,7 @@ PROCESS_THREAD(Sleep_process,ev,data)
 		{
 			DEBUG(2, "usertime = %d\r\n",HAL_GetTick(  ) - usertime);
 			
+//			LoRapp_Handle.Work_Mode = CSMA;
 			LoRaMacCsma.CadMode(  );	
 //			delay_us( 240 ); 
 			uint32_t timecad = LoRaMacCsma.SymbolTime(  ) * 1000 + 280; ///tx preamblelen = 1000+2(LoRaMacCsma.SymbolTime+2.8ms)
@@ -266,8 +267,8 @@ PROCESS_THREAD(Sleep_process,ev,data)
 			
 			if(LoRapp_Handle.Cad_Detect)
 			{
-				Radio.Standby(  );
-				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式
+//				Radio.Standby(  );
+//				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式
 
 				DEBUG(2,"-----------------timecad = %d----------\r\n",timecad);
 

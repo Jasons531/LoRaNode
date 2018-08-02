@@ -33,7 +33,7 @@ void SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -148,7 +148,7 @@ uint32_t SPI1_Read(void)
   HAL_StatusTypeDef status = HAL_OK;
   uint32_t readvalue = 0;
 
-  status = HAL_SPI_Receive(&hspi1, (uint8_t*) &readvalue, 1, 0xFFFFFFFF);
+  status = HAL_SPI_Receive(&hspi1, (uint8_t*) &readvalue, 1, 0xFFFFF);
 
 	/* Check the communication status */
 	if(status != HAL_OK)
@@ -171,7 +171,7 @@ void SPI1_Write(uint8_t Value)
 {
 	HAL_StatusTypeDef status = HAL_OK;
 
-  status = HAL_SPI_Transmit(&hspi1, (uint8_t*) &Value, 1, 0xFFFFFFFF);
+  status = HAL_SPI_Transmit(&hspi1, (uint8_t*) &Value, 1, 0xFFFF);
 	
 	/* Check the communication status */
 	if(status != HAL_OK)

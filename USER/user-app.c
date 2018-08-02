@@ -151,8 +151,15 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 				}	
 		}  
 		  memset(RxInfo.buf, 0, strlen((char *)RxInfo.buf));	
-			LoRapp_Handle.Cad_Detect = false;
-			RFTXDONE(  );
+		
+			Radio.Standby(  );
+		
+//		  LoRapp_Handle.Work_Mode = CSMA;
+			LoRaMacSetDeviceClass( CLASS_A );
+			
+			LoRaMacTestRxWindowsOn( false );
+			UserAppSend(UNCONFIRMED, "hello", 6, 2);
+		 ///¹Ø±Õ½ÓÊÕ´°¿Ú£¬¿ìËÙÍË³ö
 	}
 	 
 	if( flags->Bits.Tx == 1 )
@@ -161,10 +168,14 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 		{
 			mac_callback_g(MAC_STA_TXDONE, NULL);
 			LoRapp_Handle.Loramac_evt_flag = 1;
-
-			DEBUG(2,"Done\r\n");
+			
+			LoRaMacTestRxWindowsOn( true );
+			LoRaMacSetDeviceClass( CLASS_C );
+//			LoRapp_Handle.Work_Mode = CAD;
+			DEBUG(2,"*********************Done*********************\r\n");
+			LoRapp_Handle.Cad_Detect = false;
 			RFTXDONE(  );		
-			SendDoneLed( );
+//			SendDoneLed( );
 		}
 	}
 }

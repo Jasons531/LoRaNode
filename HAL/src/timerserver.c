@@ -96,11 +96,13 @@ void TimerStart( TimerEvent_t *obj )
     uint32_t elapsedTime = 0;
     uint32_t remainingTime = 0;
 
-    __disable_irq( );
+//    __disable_irq( );
+		__HAL_TIM_DISABLE(&htim2);
 
     if( ( obj == NULL ) || ( TimerExists( obj ) == true ) )
     {
-        __enable_irq( );
+//        __enable_irq( );
+				__HAL_TIM_ENABLE(&htim2);
         return;
     }
 
@@ -136,7 +138,8 @@ void TimerStart( TimerEvent_t *obj )
              TimerInsertTimer( obj, remainingTime );
         }
     }
-    __enable_irq( );
+//    __enable_irq( );
+		__HAL_TIM_ENABLE(&htim2);
 }
 
 static void TimerInsertTimer( TimerEvent_t *obj, uint32_t remainingTime )
@@ -268,7 +271,8 @@ void TimerIrqHandler( void )
 
 void TimerStop( TimerEvent_t *obj )
 {
-    __disable_irq( );
+//    __disable_irq( );
+	 __HAL_TIM_DISABLE(&htim2);
 
     uint32_t elapsedTime = 0;
     uint32_t remainingTime = 0;
@@ -279,7 +283,8 @@ void TimerStop( TimerEvent_t *obj )
     // List is empty or the Obj to stop does not exist
     if( ( TimerListHead == NULL ) || ( obj == NULL ) )
     {
-        __enable_irq( );
+//        __enable_irq( );
+			 __HAL_TIM_ENABLE(&htim2);
         return;
     }
 
@@ -350,7 +355,8 @@ void TimerStop( TimerEvent_t *obj )
             }
         }
     }
-    __enable_irq( );
+//    __enable_irq( );
+		__HAL_TIM_ENABLE(&htim2);
 }
 
 static bool TimerExists( TimerEvent_t *obj )

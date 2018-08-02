@@ -172,22 +172,27 @@ uint64_t TimerHwGetTimerValue( void )
 {
     uint64_t val = 0;
 
-    __disable_irq( );
+//    __disable_irq( );
+		__HAL_TIM_DISABLE(&htim2);
 
     val = TimerTickCounter;
 
-    __enable_irq( );
+//    __enable_irq( );
+	__HAL_TIM_ENABLE(&htim2);
 
     return( val );
 }
 
 void TimerIncrementTickCounter( void )
 {
-    __disable_irq( );
-
+//    __disable_irq( );
+	
+		__HAL_TIM_DISABLE(&htim2);
+	
     TimerTickCounter++;
 
-    __enable_irq( );
+		__HAL_TIM_ENABLE(&htim2);
+//    __enable_irq( );
 }
 
 void TimerHwEnterLowPowerStopMode( void )

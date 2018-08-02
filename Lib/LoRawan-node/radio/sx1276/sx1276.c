@@ -877,9 +877,6 @@ void SX1276Send( uint8_t *buffer, uint8_t size )
             // Write payload buffer
             SX1276WriteFifo( buffer, size );
 
-//			for(uint8_t i = 0; i < size; i++)
-//			DEBUG(2,"%02x",buffer[i]);
-//			DEBUG(2,"\r\n");
             txTimeout = SX1276.Settings.LoRa.TxTimeout;
         }
         break;
@@ -1304,7 +1301,6 @@ void SX1276WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
     GpioWrite( GPIOA,GPIO_PIN_4,GPIO_PIN_SET );
 }
 
-extern bool readfifo;
 void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 {
     uint8_t i;
@@ -1408,308 +1404,306 @@ void SX1276OnDio0Irq( void )
 	volatile uint8_t irqFlags = 0;
 
 	DEBUG(2, "SX1276.Settings.State : %d\r\n",SX1276.Settings.State);
-	    
-    switch( SX1276.Settings.State )
-    {                
-        case RF_RX_RUNNING:
-            TimerStop( &RxTimeoutTimer );
-            // RxDone interrupt
-            switch( SX1276.Settings.Modem )
-            {
-            case MODEM_FSK:
-                if( SX1276.Settings.Fsk.CrcOn == true )
-                {
-                    irqFlags = SX1276Read( REG_IRQFLAGS2 );
-                    if( ( irqFlags & RF_IRQFLAGS2_CRCOK ) != RF_IRQFLAGS2_CRCOK )
-                    {
-                        // Clear Irqs
-                        SX1276Write( REG_IRQFLAGS1, RF_IRQFLAGS1_RSSI | 
-                                                    RF_IRQFLAGS1_PREAMBLEDETECT |
-                                                    RF_IRQFLAGS1_SYNCADDRESSMATCH );
-                        SX1276Write( REG_IRQFLAGS2, RF_IRQFLAGS2_FIFOOVERRUN );
+	 
+	switch( SX1276.Settings.State )
+	{                
+		case RF_RX_RUNNING:
+				 TimerStop( &RxTimeoutTimer );
+				// RxDone interrupt
+				switch( SX1276.Settings.Modem )
+				{
+					case MODEM_FSK:
+							if( SX1276.Settings.Fsk.CrcOn == true )
+							{
+								irqFlags = SX1276Read( REG_IRQFLAGS2 );
+								if( ( irqFlags & RF_IRQFLAGS2_CRCOK ) != RF_IRQFLAGS2_CRCOK )
+								{
+										// Clear Irqs
+										SX1276Write( REG_IRQFLAGS1, RF_IRQFLAGS1_RSSI | 
+																								RF_IRQFLAGS1_PREAMBLEDETECT |
+																								RF_IRQFLAGS1_SYNCADDRESSMATCH );
+										SX1276Write( REG_IRQFLAGS2, RF_IRQFLAGS2_FIFOOVERRUN );
 
-                        if( SX1276.Settings.Fsk.RxContinuous == false )
-                        {
-                            SX1276.Settings.State = RF_IDLE;
-                            TimerStart( &RxTimeoutSyncWord );
-                        }
-                        else
-                        {
-                            // Continuous mode restart Rx chain
-                            SX1276Write( REG_RXCONFIG, SX1276Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                        }
-                        TimerStop( &RxTimeoutTimer );
+										if( SX1276.Settings.Fsk.RxContinuous == false )
+										{
+												SX1276.Settings.State = RF_IDLE;
+												TimerStart( &RxTimeoutSyncWord );
+										}
+										else
+										{
+												// Continuous mode restart Rx chain
+												SX1276Write( REG_RXCONFIG, SX1276Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
+										}
+										TimerStop( &RxTimeoutTimer );
 
-                        if( ( RadioEvents != NULL ) && ( RadioEvents->RxError != NULL ) )
-                        {
-                            RadioEvents->RxError( ); 
-                        }
-                        SX1276.Settings.FskPacketHandler.PreambleDetected = false;
-                        SX1276.Settings.FskPacketHandler.SyncWordDetected = false;
-                        SX1276.Settings.FskPacketHandler.NbBytes = 0;
-                        SX1276.Settings.FskPacketHandler.Size = 0;
-                        break;
-                    }
-                }
-                
-                // Read received packet size
-                if( ( SX1276.Settings.FskPacketHandler.Size == 0 ) && ( SX1276.Settings.FskPacketHandler.NbBytes == 0 ) )
-                {
-                    if( SX1276.Settings.Fsk.FixLen == false )
-                    {
-                        SX1276ReadFifo( ( uint8_t* )&SX1276.Settings.FskPacketHandler.Size, 1 );
-                    }
-                    else
-                    {
-                        SX1276.Settings.FskPacketHandler.Size = SX1276Read( REG_PAYLOADLENGTH );
-                    }
-                    SX1276ReadFifo( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes, SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
-                    SX1276.Settings.FskPacketHandler.NbBytes += ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
-                }
-                else
-                {
-                    SX1276ReadFifo( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes, SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
-                    SX1276.Settings.FskPacketHandler.NbBytes += ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
-                }
+										if( ( RadioEvents != NULL ) && ( RadioEvents->RxError != NULL ) )
+										{
+												RadioEvents->RxError( ); 
+										}
+										SX1276.Settings.FskPacketHandler.PreambleDetected = false;
+										SX1276.Settings.FskPacketHandler.SyncWordDetected = false;
+										SX1276.Settings.FskPacketHandler.NbBytes = 0;
+										SX1276.Settings.FskPacketHandler.Size = 0;
+										break;
+								}
+						}
+							
+						// Read received packet size
+						if( ( SX1276.Settings.FskPacketHandler.Size == 0 ) && ( SX1276.Settings.FskPacketHandler.NbBytes == 0 ) )
+						{
+								if( SX1276.Settings.Fsk.FixLen == false )
+								{
+										SX1276ReadFifo( ( uint8_t* )&SX1276.Settings.FskPacketHandler.Size, 1 );
+								}
+								else
+								{
+										SX1276.Settings.FskPacketHandler.Size = SX1276Read( REG_PAYLOADLENGTH );
+								}
+								SX1276ReadFifo( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes, SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
+								SX1276.Settings.FskPacketHandler.NbBytes += ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
+						}
+						else
+						{
+								SX1276ReadFifo( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes, SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
+								SX1276.Settings.FskPacketHandler.NbBytes += ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
+						}
 
-                if( SX1276.Settings.Fsk.RxContinuous == false )
-                {
-                    SX1276.Settings.State = RF_IDLE;
-                    TimerStart( &RxTimeoutSyncWord );
-                }
-                else
-                {
-                    // Continuous mode restart Rx chain
-                    SX1276Write( REG_RXCONFIG, SX1276Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                }
-                TimerStop( &RxTimeoutTimer );
+						if( SX1276.Settings.Fsk.RxContinuous == false )
+						{
+								SX1276.Settings.State = RF_IDLE;
+								TimerStart( &RxTimeoutSyncWord );
+						}
+						else
+						{
+								// Continuous mode restart Rx chain
+								SX1276Write( REG_RXCONFIG, SX1276Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
+						}
+						TimerStop( &RxTimeoutTimer );
 
-                if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
-                {
-                    RadioEvents->RxDone( RxTxBuffer, SX1276.Settings.FskPacketHandler.Size, SX1276.Settings.FskPacketHandler.RssiValue, 0 );  
-                    DEBUG(2,"break RXDone\r\n");
-                } 
-                SX1276.Settings.FskPacketHandler.PreambleDetected = false;
-                SX1276.Settings.FskPacketHandler.SyncWordDetected = false;
-                SX1276.Settings.FskPacketHandler.NbBytes = 0;
-                SX1276.Settings.FskPacketHandler.Size = 0;
-                break;
-            case MODEM_LORA:
-                {
-                    int8_t snr = 0;
+						if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
+						{
+								RadioEvents->RxDone( RxTxBuffer, SX1276.Settings.FskPacketHandler.Size, SX1276.Settings.FskPacketHandler.RssiValue, 0 );  
+								DEBUG(2,"break RXDone\r\n");
+						} 
+						SX1276.Settings.FskPacketHandler.PreambleDetected = false;
+						SX1276.Settings.FskPacketHandler.SyncWordDetected = false;
+						SX1276.Settings.FskPacketHandler.NbBytes = 0;
+						SX1276.Settings.FskPacketHandler.Size = 0;
+						break;
+				case MODEM_LORA:
+						{
+							int8_t snr = 0;
 
-									DEBUG(2,"MODEM_LORA --");
-                    // Clear Irq
-                    SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXDONE );
+							DEBUG(2,"MODEM_LORA --");
+							// Clear Irq
+							SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXDONE );
 
-                    irqFlags = SX1276Read( REG_LR_IRQFLAGS );
-                    if( ( irqFlags & RFLR_IRQFLAGS_PAYLOADCRCERROR_MASK ) == RFLR_IRQFLAGS_PAYLOADCRCERROR )
-                    {
-                        // Clear Irq
-                        SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_PAYLOADCRCERROR );
+							irqFlags = SX1276Read( REG_LR_IRQFLAGS );
+							if( ( irqFlags & RFLR_IRQFLAGS_PAYLOADCRCERROR_MASK ) == RFLR_IRQFLAGS_PAYLOADCRCERROR )
+							{
+									// Clear Irq
+									SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_PAYLOADCRCERROR );
 
-                        if( SX1276.Settings.LoRa.RxContinuous == false )
-                        {
-                            SX1276.Settings.State = RF_IDLE;
-                        }
-                        TimerStop( &RxTimeoutTimer );
+									if( SX1276.Settings.LoRa.RxContinuous == false )
+									{
+											SX1276.Settings.State = RF_IDLE;
+									}
+									TimerStop( &RxTimeoutTimer );
 
-                        if( ( RadioEvents != NULL ) && ( RadioEvents->RxError != NULL ) )
-                        {
-                            DEBUG(2,"---RxError---\r\n");
-                            RadioEvents->RxError( ); 
-                        }
-                        
-												DEBUG(2,"RadioEvents --");
-                        break;
-                    }
+									if( ( RadioEvents != NULL ) && ( RadioEvents->RxError != NULL ) )
+									{
+											DEBUG(2,"---RxError---\r\n");
+											RadioEvents->RxError( ); 
+									}
+									
+									DEBUG(2,"RadioEvents --");
+									break;
+								}
 
-                    SX1276.Settings.LoRaPacketHandler.SnrValue = SX1276Read( REG_LR_PKTSNRVALUE );
-                    if( SX1276.Settings.LoRaPacketHandler.SnrValue & 0x80 ) // The SNR sign bit is 1
-                    {
-                        // Invert and divide by 4
-                        snr = ( ( ~SX1276.Settings.LoRaPacketHandler.SnrValue + 1 ) & 0xFF ) >> 2;
-                        snr = -snr;
-                    }
-                    else
-                    {
-                        // Divide by 4
-                        snr = ( SX1276.Settings.LoRaPacketHandler.SnrValue & 0xFF ) >> 2;
-                    }
+								SX1276.Settings.LoRaPacketHandler.SnrValue = SX1276Read( REG_LR_PKTSNRVALUE );
+								if( SX1276.Settings.LoRaPacketHandler.SnrValue & 0x80 ) // The SNR sign bit is 1
+								{
+										// Invert and divide by 4
+										snr = ( ( ~SX1276.Settings.LoRaPacketHandler.SnrValue + 1 ) & 0xFF ) >> 2;
+										snr = -snr;
+								}
+								else
+								{
+										// Divide by 4
+										snr = ( SX1276.Settings.LoRaPacketHandler.SnrValue & 0xFF ) >> 2;
+								}
 
-                    int16_t rssi = SX1276Read( REG_LR_PKTRSSIVALUE );
-                    if( snr < 0 )
-                    {
-                        if( SX1276.Settings.Channel > RF_MID_BAND_THRESH )
-                        {
-                            SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_HF + rssi + ( rssi >> 4 ) +
-                                                                          snr;
-                        }
-                        else
-                        {
-                            SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_LF + rssi + ( rssi >> 4 ) +
-                                                                          snr;
-                        }
-                    }
-                    else
-                    {    
-                        if( SX1276.Settings.Channel > RF_MID_BAND_THRESH )
-                        {
-                            SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_HF + rssi + ( rssi >> 4 );
-                        }
-                        else
-                        {
-                            SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_LF + rssi + ( rssi >> 4 );
-                        }
-                    }
-                    
-                    SX1276.Settings.LoRaPacketHandler.Size = SX1276Read( REG_LR_RXNBBYTES );
-                    SX1276ReadFifo( RxTxBuffer, SX1276.Settings.LoRaPacketHandler.Size );
-                
-                    if( SX1276.Settings.LoRa.RxContinuous == false )
-                    {
-                        SX1276.Settings.State = RF_IDLE;
-                    }
-                    TimerStop( &RxTimeoutTimer );
-
-                    if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
-                    {          
-                         DEBUG(2,"bufferr --");
-                         for(uint8_t i = 0; i < SX1276.Settings.LoRaPacketHandler.Size; i++)
-                         DEBUG(3,"%x", RxTxBuffer[i]);
-                         DEBUG(3,"\r\n");
-                        RadioEvents->RxDone( RxTxBuffer, SX1276.Settings.LoRaPacketHandler.Size, SX1276.Settings.LoRaPacketHandler.RssiValue, SX1276.Settings.LoRaPacketHandler.SnrValue );                       
-                    }
-                }
-                break;
-            default:
-                break;
-            }
-            break;
-        case RF_TX_RUNNING:
-            TimerStop( &TxTimeoutTimer );
-            // TxDone interrupt
-            switch( SX1276.Settings.Modem )
-            {
-            case MODEM_LORA:
-                // Clear Irq
-                SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_TXDONE );         
-                // Intentional fall through
-            case MODEM_FSK:
-            default:
-                SX1276.Settings.State = RF_IDLE;
-                if( ( RadioEvents != NULL ) && ( RadioEvents->TxDone != NULL ) )
-                {
-                	DEBUG(2,"---TxDone user timre: %d---\r\n", HAL_GetTick(  ) - RfSend_time);
-                    RadioEvents->TxDone( );
-                } 
-                break;
-            }
-            break;
-						
-	  case RF_CAD:   ////add buy Jason
-		   if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
-			{				
-				test_sleep = true;
-
-				// Clear Irq
-				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
-				
-				OnRadioCadDone( true );		
-				
-//				SX1276.Settings.State = RF_IDLE;
-				
-//				Radio.Standby(  );
-//				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式	
+								int16_t rssi = SX1276Read( REG_LR_PKTRSSIVALUE );
+								if( snr < 0 )
+								{
+									if( SX1276.Settings.Channel > RF_MID_BAND_THRESH )
+									{
+											SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_HF + rssi + ( rssi >> 4 ) +
+																																		snr;
+									}
+									else
+									{
+											SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_LF + rssi + ( rssi >> 4 ) +
+																																		snr;
+									}
+								}
+								else
+								{    
+									if( SX1276.Settings.Channel > RF_MID_BAND_THRESH )
+									{
+											SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_HF + rssi + ( rssi >> 4 );
+									}
+									else
+									{
+											SX1276.Settings.LoRaPacketHandler.RssiValue = RSSI_OFFSET_LF + rssi + ( rssi >> 4 );
+									}
+								}
 								
-//				SX1276.Settings.State = RF_RX_RUNNING;
-			}
-			else
-			{        
-				// Clear Irq
-				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );			
-				OnRadioCadDone( false );
-			}
-        break;
-        default:
-            break;
-    }
+								SX1276.Settings.LoRaPacketHandler.Size = SX1276Read( REG_LR_RXNBBYTES );
+								SX1276ReadFifo( RxTxBuffer, SX1276.Settings.LoRaPacketHandler.Size );
+						
+								if( SX1276.Settings.LoRa.RxContinuous == false )
+								{
+										SX1276.Settings.State = RF_IDLE;
+								}
+								TimerStop( &RxTimeoutTimer );
+
+								if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
+								{          
+									 DEBUG(2,"bufferr --");
+									 for(uint8_t i = 0; i < SX1276.Settings.LoRaPacketHandler.Size; i++)
+									 DEBUG(3,"%x", RxTxBuffer[i]);
+									 DEBUG(3,"\r\n");
+									 RadioEvents->RxDone( RxTxBuffer, SX1276.Settings.LoRaPacketHandler.Size, SX1276.Settings.LoRaPacketHandler.RssiValue, SX1276.Settings.LoRaPacketHandler.SnrValue );                       
+								}
+							}
+							break;
+					default:
+							break;
+					}
+					break;
+		case RF_TX_RUNNING:
+				TimerStop( &TxTimeoutTimer );
+				// TxDone interrupt
+				switch( SX1276.Settings.Modem )
+				{
+				case MODEM_LORA:
+						// Clear Irq
+						SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_TXDONE );         
+						// Intentional fall through
+				case MODEM_FSK:
+				default:
+						SX1276.Settings.State = RF_IDLE;
+						if( ( RadioEvents != NULL ) && ( RadioEvents->TxDone != NULL ) )
+						{
+							DEBUG(2,"---TxDone user timre: %d---\r\n", HAL_GetTick(  ) - RfSend_time);
+								RadioEvents->TxDone( );
+						} 
+						break;
+				}
+				break;
+					
+	case RF_CAD:   ////add buy Jason
+		 if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
+		{				
+			test_sleep = true;
+
+			// Clear Irq
+			SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
+									
+			OnRadioCadDone( true );		
+			Radio.Standby(  );
+			
+//			SX1276IsChannelFree
+//			Radio.IsChannelFree();
+			OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式				
+		}
+		else
+		{        
+			// Clear Irq
+			SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );			
+			OnRadioCadDone( false );
+			break;
+		}
+		default:
+				break;
+	}
 		
 }
 
 void SX1276OnDio1Irq( void )
 {
 	DEBUG(2,"%s %d\r\n",__func__, SX1276.Settings.State);
-    switch( SX1276.Settings.State )
-    {                
-        case RF_RX_RUNNING:
-            switch( SX1276.Settings.Modem )
-            {
-            case MODEM_FSK:
-                // FifoLevel interrupt
-                // Read received packet size
-                if( ( SX1276.Settings.FskPacketHandler.Size == 0 ) && ( SX1276.Settings.FskPacketHandler.NbBytes == 0 ) )
-                {
-                    if( SX1276.Settings.Fsk.FixLen == false )
-                    {
-                        SX1276ReadFifo( ( uint8_t* )&SX1276.Settings.FskPacketHandler.Size, 1 );
-                    }
-                    else
-                    {
-                        SX1276.Settings.FskPacketHandler.Size = SX1276Read( REG_PAYLOADLENGTH );
-                    }
-                }
+	switch( SX1276.Settings.State )
+	{                
+		case RF_RX_RUNNING:
+				switch( SX1276.Settings.Modem )
+				{
+					case MODEM_FSK:
+						// FifoLevel interrupt
+						// Read received packet size
+						if( ( SX1276.Settings.FskPacketHandler.Size == 0 ) && ( SX1276.Settings.FskPacketHandler.NbBytes == 0 ) )
+						{
+							if( SX1276.Settings.Fsk.FixLen == false )
+							{
+									SX1276ReadFifo( ( uint8_t* )&SX1276.Settings.FskPacketHandler.Size, 1 );
+							}
+							else
+							{
+									SX1276.Settings.FskPacketHandler.Size = SX1276Read( REG_PAYLOADLENGTH );
+							}
+						}
 
-                if( ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes ) > SX1276.Settings.FskPacketHandler.FifoThresh )
-                {
-                    SX1276ReadFifo( ( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes ), SX1276.Settings.FskPacketHandler.FifoThresh );
-                    SX1276.Settings.FskPacketHandler.NbBytes += SX1276.Settings.FskPacketHandler.FifoThresh;
-                }
-                else
-                {
-                    SX1276ReadFifo( ( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes ), SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
-                    SX1276.Settings.FskPacketHandler.NbBytes += ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
-                }
-                break;
-            case MODEM_LORA:
-                // Sync time out
-                TimerStop( &RxTimeoutTimer );
-                SX1276.Settings.State = RF_IDLE;
-                if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
-                {
-                    RadioEvents->RxTimeout( );
-                }
-                break;
-            default:
-                break;
-            }
-            break;
-        case RF_TX_RUNNING:
-            switch( SX1276.Settings.Modem )
-            {
-            case MODEM_FSK:
-                // FifoEmpty interrupt
-                if( ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes ) > SX1276.Settings.FskPacketHandler.ChunkSize )
-                {
-                    SX1276WriteFifo( ( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes ), SX1276.Settings.FskPacketHandler.ChunkSize );
-                    SX1276.Settings.FskPacketHandler.NbBytes += SX1276.Settings.FskPacketHandler.ChunkSize;
-                }
-                else 
-                {
-                    // Write the last chunk of data
-                    SX1276WriteFifo( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes, SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
-                    SX1276.Settings.FskPacketHandler.NbBytes += SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes;
-                }
-                break;
-            case MODEM_LORA:
-                break;
-            default:
-                break;
-            }
-            break;      
-        default:
-            break;
-    }
+						if( ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes ) > SX1276.Settings.FskPacketHandler.FifoThresh )
+						{
+								SX1276ReadFifo( ( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes ), SX1276.Settings.FskPacketHandler.FifoThresh );
+								SX1276.Settings.FskPacketHandler.NbBytes += SX1276.Settings.FskPacketHandler.FifoThresh;
+						}
+						else
+						{
+								SX1276ReadFifo( ( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes ), SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
+								SX1276.Settings.FskPacketHandler.NbBytes += ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
+						}
+						break;
+				case MODEM_LORA:
+						// Sync time out
+						TimerStop( &RxTimeoutTimer );
+						SX1276.Settings.State = RF_IDLE;
+						if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
+						{
+								RadioEvents->RxTimeout( );
+						}
+						break;
+				default:
+						break;
+				}
+				break;
+		case RF_TX_RUNNING:
+				switch( SX1276.Settings.Modem )
+				{
+				case MODEM_FSK:
+						// FifoEmpty interrupt
+						if( ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes ) > SX1276.Settings.FskPacketHandler.ChunkSize )
+						{
+								SX1276WriteFifo( ( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes ), SX1276.Settings.FskPacketHandler.ChunkSize );
+								SX1276.Settings.FskPacketHandler.NbBytes += SX1276.Settings.FskPacketHandler.ChunkSize;
+						}
+						else 
+						{
+								// Write the last chunk of data
+								SX1276WriteFifo( RxTxBuffer + SX1276.Settings.FskPacketHandler.NbBytes, SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
+								SX1276.Settings.FskPacketHandler.NbBytes += SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes;
+						}
+						break;
+				case MODEM_LORA:
+						break;
+				default:
+						break;
+				}
+				break;      
+		default:
+				break;
+	}
 		
 }
 
@@ -1718,65 +1712,64 @@ void SX1276OnDio2Irq( void )
 		DEBUG(3,"%s\r\n",__func__);
     switch( SX1276.Settings.State )
     {                
-        case RF_RX_RUNNING:
-            switch( SX1276.Settings.Modem )
-            {
-            case MODEM_FSK:
-                if( ( SX1276.Settings.FskPacketHandler.PreambleDetected == true ) && ( SX1276.Settings.FskPacketHandler.SyncWordDetected == false ) )
-                {
-                    TimerStop( &RxTimeoutSyncWord );
-                    
-                    SX1276.Settings.FskPacketHandler.SyncWordDetected = true;
-                
-                    SX1276.Settings.FskPacketHandler.RssiValue = -( SX1276Read( REG_RSSIVALUE ) >> 1 );
+			case RF_RX_RUNNING:
+					switch( SX1276.Settings.Modem )
+					{
+						case MODEM_FSK:
+							if( ( SX1276.Settings.FskPacketHandler.PreambleDetected == true ) && ( SX1276.Settings.FskPacketHandler.SyncWordDetected == false ) )
+							{
+								TimerStop( &RxTimeoutSyncWord );
+								
+								SX1276.Settings.FskPacketHandler.SyncWordDetected = true;
+						
+								SX1276.Settings.FskPacketHandler.RssiValue = -( SX1276Read( REG_RSSIVALUE ) >> 1 );
 
-                    SX1276.Settings.FskPacketHandler.AfcValue = ( int32_t )( double )( ( ( uint16_t )SX1276Read( REG_AFCMSB ) << 8 ) |
-                                                                           ( uint16_t )SX1276Read( REG_AFCLSB ) ) *
-                                                                           ( double )FREQ_STEP;
-                    SX1276.Settings.FskPacketHandler.RxGain = ( SX1276Read( REG_LNA ) >> 5 ) & 0x07;
-                }
-                break;
-            case MODEM_LORA:
-                if( SX1276.Settings.LoRa.FreqHopOn == true )
-                {
-                    // Clear Irq
-                    SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
-                    
-                    if( ( RadioEvents != NULL ) && ( RadioEvents->FhssChangeChannel != NULL ) )
-                    {
-                        RadioEvents->FhssChangeChannel( ( SX1276Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
-                    }
-                }
-                break;
-            default:
-                break;
-            }
-            break;
-        case RF_TX_RUNNING:
-            switch( SX1276.Settings.Modem )
-            {
-            case MODEM_FSK:
-                break;
-            case MODEM_LORA:
-                if( SX1276.Settings.LoRa.FreqHopOn == true )
-                {
-                    // Clear Irq
-                    SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
-                    
-                    if( ( RadioEvents != NULL ) && ( RadioEvents->FhssChangeChannel != NULL ) )
-                    {
-                        RadioEvents->FhssChangeChannel( ( SX1276Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
-                    }
-                }
-                break;
-            default:
-                break;
-            }
-            break;      
-        default:
-            break;
-    }
-	
+								SX1276.Settings.FskPacketHandler.AfcValue = ( int32_t )( double )( ( ( uint16_t )SX1276Read( REG_AFCMSB ) << 8 ) |
+																																			 ( uint16_t )SX1276Read( REG_AFCLSB ) ) *
+																																			 ( double )FREQ_STEP;
+								SX1276.Settings.FskPacketHandler.RxGain = ( SX1276Read( REG_LNA ) >> 5 ) & 0x07;
+							}
+							break;
+						case MODEM_LORA:
+							if( SX1276.Settings.LoRa.FreqHopOn == true )
+							{
+								// Clear Irq
+								SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
+								
+								if( ( RadioEvents != NULL ) && ( RadioEvents->FhssChangeChannel != NULL ) )
+								{
+										RadioEvents->FhssChangeChannel( ( SX1276Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
+								}
+							}
+							break;
+						default:
+							break;
+					}
+					break;
+			case RF_TX_RUNNING:
+					switch( SX1276.Settings.Modem )
+					{
+						case MODEM_FSK:
+									break;
+						case MODEM_LORA:
+							if( SX1276.Settings.LoRa.FreqHopOn == true )
+							{
+									// Clear Irq
+									SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
+									
+									if( ( RadioEvents != NULL ) && ( RadioEvents->FhssChangeChannel != NULL ) )
+									{
+											RadioEvents->FhssChangeChannel( ( SX1276Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
+									}
+							}
+								break;
+						default:
+							break;
+					}
+					break;      
+			default:
+					break;
+	}
 }
 
 void SX1276OnDio3Irq( void )
@@ -1812,8 +1805,7 @@ void SX1276OnDio3Irq( void )
         break;
     default:
         break;
-    }
-		
+    }	
 }
 
 void SX1276OnDio4Irq( void )
