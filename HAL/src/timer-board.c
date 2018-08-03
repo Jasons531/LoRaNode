@@ -64,7 +64,7 @@ void TimerHwInit( void )
 	 Error_Handler( );
   }
   /* TIM2_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(TIM2_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(TIM2_IRQn, 4, 0);
   HAL_NVIC_EnableIRQ(TIM2_IRQn);
 }
 

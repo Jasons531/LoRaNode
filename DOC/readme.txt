@@ -136,4 +136,10 @@ LoRaMacTestRxWindowsOn( false );：关闭接收窗口
 LoRaMacSetReceiveDelay1( 200 );  ///窗口1开启时间
 LoRaMacSetReceiveDelay2( 200 );  ///窗口2开启时间
 
+    RadioEvents.TxDone = OnRadioTxDone;
+    RadioEvents.RxDone = OnRadioRxDone;
+	
+	 OnRadioRxTimeout
+	 
+	 划分频域图表
 

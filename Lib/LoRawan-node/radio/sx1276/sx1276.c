@@ -374,7 +374,7 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
 {
     SX1276SetModem( modem );
 	
-		DEBUG(3,"datarate = %d, iqInverted = %d\r\n",datarate, iqInverted);
+//		DEBUG(3,"datarate = %d, iqInverted = %d\r\n",datarate, iqInverted);
 
     switch( modem )
     {
@@ -1566,9 +1566,9 @@ void SX1276OnDio0Irq( void )
 
 								if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
 								{          
-									 DEBUG(2,"bufferr --");
-									 for(uint8_t i = 0; i < SX1276.Settings.LoRaPacketHandler.Size; i++)
-									 DEBUG(3,"%x", RxTxBuffer[i]);
+									 DEBUG(3,"bufferr --");
+//									 for(uint8_t i = 0; i < SX1276.Settings.LoRaPacketHandler.Size; i++)
+//									 DEBUG(3,"%x", RxTxBuffer[i]);
 									 DEBUG(3,"\r\n");
 									 RadioEvents->RxDone( RxTxBuffer, SX1276.Settings.LoRaPacketHandler.Size, SX1276.Settings.LoRaPacketHandler.RssiValue, SX1276.Settings.LoRaPacketHandler.SnrValue );                       
 								}
@@ -1592,7 +1592,7 @@ void SX1276OnDio0Irq( void )
 						SX1276.Settings.State = RF_IDLE;
 						if( ( RadioEvents != NULL ) && ( RadioEvents->TxDone != NULL ) )
 						{
-							DEBUG(2,"---TxDone user timre: %d---\r\n", HAL_GetTick(  ) - RfSend_time);
+								DEBUG(2,"---TxDone user timre: %d---\r\n", HAL_GetTick(  ) - RfSend_time);
 								RadioEvents->TxDone( );
 						} 
 						break;
@@ -1600,27 +1600,24 @@ void SX1276OnDio0Irq( void )
 				break;
 					
 	case RF_CAD:   ////add buy Jason
-		 if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
-		{				
-			test_sleep = true;
+			 if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
+			{				
+				// Clear Irq
+				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
+										
+				OnRadioCadDone( true );		
+				
+				Radio.Standby(  );
 
-			// Clear Irq
-			SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
-									
-			OnRadioCadDone( true );		
-			Radio.Standby(  );
-			
-//			SX1276IsChannelFree
-//			Radio.IsChannelFree();
-			OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式				
-		}
-		else
-		{        
-			// Clear Irq
-			SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );			
-			OnRadioCadDone( false );
-			break;
-		}
+				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式				
+			}
+			else
+			{        
+				// Clear Irq
+				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );			
+				OnRadioCadDone( false );
+				break;
+			}
 		default:
 				break;
 	}
@@ -1778,8 +1775,6 @@ void SX1276OnDio3Irq( void )
     case MODEM_LORA:
 		   if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
 			{				
-				test_sleep = true;
-
 				// Clear Irq
 				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
 				

@@ -134,7 +134,6 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 			RxInfo.win = flags->Bits.RxSlot+1;
 			RxInfo.port = info->RxPort;
 			
-			test_sleep = false;
 			DEBUG(2,"win = %d snr = %d rssi = %d size = %d \r\n",RxInfo.win, RxInfo.snr, RxInfo.rssi, RxInfo.size);
 			if(flags->Bits.RxData == 1)
 			{
@@ -152,14 +151,18 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 		}  
 		  memset(RxInfo.buf, 0, strlen((char *)RxInfo.buf));	
 		
-			Radio.Standby(  );
+			///Òì²½Ïß³ÌÖ´ÐÐ
 		
-//		  LoRapp_Handle.Work_Mode = CSMA;
-			LoRaMacSetDeviceClass( CLASS_A );
-			
-			LoRaMacTestRxWindowsOn( false );
-			UserAppSend(UNCONFIRMED, "hello", 6, 2);
-		 ///¹Ø±Õ½ÓÊÕ´°¿Ú£¬¿ìËÙÍË³ö
+//			Radio.Standby(  );
+//		
+//			LoRaMacSetDeviceClass( CLASS_A );
+//			
+//			///¹Ø±Õ½ÓÊÕ´°¿Ú£¬¿ìËÙÍË³ö
+//			LoRaMacTestRxWindowsOn( false );
+//			UserAppSend(UNCONFIRMED, "hello", 6, 2);
+		CreateEvent(  );
+		ControlProcess(  );
+		 
 	}
 	 
 	if( flags->Bits.Tx == 1 )
@@ -170,12 +173,13 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 			LoRapp_Handle.Loramac_evt_flag = 1;
 			
 			LoRaMacTestRxWindowsOn( true );
-//			LoRapp_Handle.Work_Mode = CAD;
+			LoRapp_Handle.Work_Mode = CAD;
 			DEBUG(2,"*********************Done*********************\r\n");
 			
 			LoRaMacSetDeviceClass( CLASS_C );
+			
 			LoRapp_Handle.Cad_Detect = false;
-			RFTXDONE(  );		
+			SleepProcess(  );		
 //			SendDoneLed( );
 		}
 	}

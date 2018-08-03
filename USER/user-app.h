@@ -182,7 +182,11 @@ void PowerEnableLed(void);
 
 void PowerDisbleLed(void);
 
-void RFTXDONE(void);
+void SleepProcess(void);
+
+void ControlProcess(void);
+
+void CreateEvent(void);
 
 
 #endif /* __USER_APP_H */

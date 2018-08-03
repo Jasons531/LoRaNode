@@ -769,12 +769,10 @@ void OnRadioCadDone( bool channelActivityDetected )
 	if(channelActivityDetected == true)
 	{
     LoRapp_Handle.Cad_Detect = true;
-    LoRapp_Handle.Cad_Done = false;
 		DEBUG(3,"Cad_State3333 = Cad_Detect \r\n");
 	}else
 	{
     LoRapp_Handle.Cad_Done = true;
-    LoRapp_Handle.Cad_Detect = false;
 		DEBUG(2,"Cad_State3333 = CadDone \r\n");
 	}
 }
@@ -1405,10 +1403,13 @@ static void OnRadioRxTimeout( void )
         Radio.Sleep( );
     }
     else
-    {
-        OnRxWindow2TimerEvent( );
+    {			
+				if(!LoRapp_Handle.Cad_Detect) ///CAD模式触发模式不启动
+				{
+					Radio.Standby(  );
+					OnRxWindow2TimerEvent( );
+				}
 				LoRapp_Handle.Cad_Detect = false;
-				test_sleep = false;
     }
 
     if( RxSlot == 1 )
@@ -1730,7 +1731,7 @@ void OnRxWindow1TimerEvent( void )
 
 void OnRxWindow2TimerEvent( void )
 {
-	DEBUG(3,"func: %s\r\n",__func__);
+	DEBUG(2,"func: %s\r\n",__func__);
 	int8_t datarate = 0;
 	uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
 	uint32_t bandwidth = 0; // LoRa 125 kHz
@@ -1738,7 +1739,7 @@ void OnRxWindow2TimerEvent( void )
 	TimerStop( &RxWindowTimer2 );
 	RxSlot = 1;
 
-	///add by Ysheng Start
+///add by Jason Start
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     datarate = ChannelsDatarate - Rx1DrOffset;
@@ -1749,7 +1750,7 @@ void OnRxWindow2TimerEvent( void )
 
 #endif
 
-///add by Ysheng End
+///add by Jason End
 	
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     // For higher datarates, we increase the number of symbols generating a Rx Timeout
@@ -1775,16 +1776,22 @@ void OnRxWindow2TimerEvent( void )
     #error "Please define a frequency band in the compiler options."
 #endif
 		
+///add by Jason Start
+		
 	uint32_t Freq = Channels[Channel].Frequency;
 	Freq += 3e7;
+		
+///add by Jason End
 	
 	if( LoRaMacDeviceClass != CLASS_C ) ///网关应答A类
 	{
 		RxWindowSetup( Freq, datarate, bandwidth, symbTimeout, true );
-		DEBUG(2,"RX2Frequency = %d, Datarate = %d\r\n",Freq,datarate);
+		DEBUG(3,"RX2Frequency = %d, Datarate = %d\r\n",Freq,datarate);
 	}
 	else
 	{
+///add by Jason Start		
+		
 		if( LoRapp_Handle.Work_Mode == CSMA ) ///侦听模式：同频
 		{
 			RxWindowSetup( Channels[Channel].Frequency, datarate, bandwidth, symbTimeout, true );
@@ -1793,8 +1800,10 @@ void OnRxWindow2TimerEvent( void )
 		else ///网关通讯
 		{
 			 RxWindowSetup( Freq, datarate, bandwidth, symbTimeout, true );
-			 DEBUG(3,"RX2Frequency CAD = %d, Datarate = %d\r\n",Freq,datarate);
+			 DEBUG(2,"RX2Frequency CAD = %d, Datarate = %d\r\n",Freq,datarate);
 		}			
+		
+///add by Jason End
 	}
 }
 
@@ -1980,15 +1989,21 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         {
             modem = MODEM_LORA;
 					
+///add by Jason Start
+					
 						if(Csma.Iq_Invert) ///点对点：作区分：sleep mode and working mode have different preamblelen 
 						{
-							 Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 136, timeout, false, 0, false, 0, 0, false, rxContinuous ); //false -- P2P
+							 uint32_t Cadtime = Csma.CadTime/2000 + PREAMBLETIME;
+							 uint16_t preamble_len = Cadtime/LoRaMacCsma.SymbolTime(  );
+							 Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, preamble_len, timeout, false, 0, false, 0, 0, false, rxContinuous ); //false -- P2P
 							 DEBUG(3,"Radio.SetRxConfig\r\n");
 						}
 						else
 						{
 							Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous ); //true---GW
 						}
+						
+///add by Jason End
 //            Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
@@ -2012,10 +2027,10 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         }
         else
         {
-					DEBUG(3,"Radio.Rx\r\n");
-					if(LoRapp_Handle.Work_Mode == CSMA) ///侦听状态也处于TX，生成超时机制
+					DEBUG(2,"Radio.Rx\r\n");
+					if(LoRapp_Handle.Work_Mode == CSMA || LoRapp_Handle.Cad_Detect) ///侦听状态也处于TX，生成超时机制
             Radio.Rx( MaxRxWindow ); // Continuous mode
-					else
+					else if(LoRapp_Handle.Work_Mode == CAD && !LoRapp_Handle.Cad_Detect)
 						Radio.Rx( 0 );
         }
     }
@@ -2859,7 +2874,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     else
     { // Normal LoRa channel
         Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 20, false, true, 0, 0, false, 3e3 );
+        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
     }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )

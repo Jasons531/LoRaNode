@@ -51,11 +51,11 @@
 
 
 /************************设置CAD模式参数**************************/
-LoRaCsma_t Csma = {true, false, false, 0, 2, 0};
+LoRaCsma_t Csma = {true, false, false, 0, 2, 0, 0};
 
 uint32_t RfSend_time = 0;
 
-const LoRaMacCsma_t LoRaMacCsma = {LoRaChannelAddFun, LoRaSymbolTime, LoRaListenAagain, LoRaCadMode};
+const LoRaMacCsma_t LoRaMacCsma = {LoRaChannelAddFun, LoRaSymbolTime, LoRaListenAagain, LoRaCadMode, LoRaCadTime};
 
 TimerEvent_t CsmaTimer;
 void OnCsmaTimerEvent( void )
@@ -124,7 +124,7 @@ void LoRaCadMode(void)
 */
 float LoRaSymbolTime(void)
 {
-	Csma.symbolTime = 0;
+	Csma.SymbolTime = 0;
 	uint8_t LORA_SPREADING_FACTOR = 0;
 	
 	if(LoRapp_Handle.default_datarate == 0)
@@ -140,9 +140,9 @@ float LoRaSymbolTime(void)
 	else 
 		LORA_SPREADING_FACTOR = 7;
 	
-	 Csma.symbolTime = ( pow( (float)2, (float)LORA_SPREADING_FACTOR ) ) / 125;  // SF7 and BW = 125 KHz
-	 DEBUG(2,"LORA_SPREADING_FACTOR = %d symbolTime = %0.1f\r\n",LORA_SPREADING_FACTOR,Csma.symbolTime);
-	 return Csma.symbolTime;
+	 Csma.SymbolTime = ( pow( (float)2, (float)LORA_SPREADING_FACTOR ) ) / 125;  // SF7 and BW = 125 KHz
+	 DEBUG(2,"LORA_SPREADING_FACTOR = %d symbolTime = %0.1f\r\n",LORA_SPREADING_FACTOR,Csma.SymbolTime);
+	 return Csma.SymbolTime;
 }
 
 /*
@@ -160,4 +160,13 @@ void LoRaListenAagain(void)
 		
 		 DEBUG_WARNING(2,"LoRaCsma.Listen is true\r\n");
 	}
+}
+
+/*
+*	LoRaCadTime ：获取CAD总的时间
+*/
+void LoRaCadTime(void)
+{
+		Csma.CadTime = LoRaMacCsma.SymbolTime(  ) * 1000 + 280; ///tx preamblelen = 1000+2(LoRaMacCsma.SymbolTime+2.8ms)
+		Csma.CadTime *= 2;
 }

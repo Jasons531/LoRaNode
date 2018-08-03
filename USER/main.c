@@ -21,8 +21,6 @@
 #include "autostart.h"
 
 
-
-
 #ifndef SUCCESS
 #define SUCCESS                         1
 #endif
@@ -76,11 +74,34 @@ extern RTC_HandleTypeDef 						RtcHandle;
 extern SPI_HandleTypeDef            SPI1_Handler;  
 
 PROCESS(Sleep_process,"Sleep_process");
+PROCESS(Control_process,"Control_process");
 //PROCESS(SX1278Send_process,"SX1278Send_process");
-AUTOSTART_PROCESSES(&Sleep_process);  // ,&SX1278Send_process
-void RFTXDONE(void)
+AUTOSTART_PROCESSES(&Sleep_process, &Control_process);  // ,&SX1278Send_process
+
+process_event_t CadWakeup;
+
+/*
+*启动Sleep_process控制权
+*/
+void SleepProcess(void)
 {
 	process_poll(&Sleep_process);
+}
+
+/*
+*启动Control_process异步线程
+*/
+void ControlProcess(void)
+{
+	process_post(&Control_process, CadWakeup, NULL);
+}
+
+/*
+*创建CreateEvent事件
+*/
+void CreateEvent(void)
+{
+	 CadWakeup = process_alloc_event(); //return lastevent++; 新建一个事件，事实上是用一组unsigned char值来标识不同事件
 }
 
 extern uint32_t UpLinkCounter;
@@ -203,9 +224,7 @@ void processset(void)
 	autostart_start(autostart_processes);
 }
 
-bool test_sleep = false;
-
-PROCESS_THREAD(Sleep_process,ev,data)
+PROCESS_THREAD(Sleep_process,ev,data) ///主进程监听是否CAD唤醒
 {	
   static struct etimer et;
 	static uint32_t usertime = 0;
@@ -221,6 +240,56 @@ PROCESS_THREAD(Sleep_process,ev,data)
 	while(1)
 	{
 		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));			
+		
+		if(!LoRapp_Handle.Cad_Detect)
+		{
+			DEBUG(2, "usertime = %d\r\n",HAL_GetTick(  ) - usertime);
+			
+			LoRaMacCsma.CadMode(  );	
+			
+			LoRaMacCsma.CadTime(  );
+			
+			delay_us( Csma.CadTime ); 
+			
+			DEBUG(2,"-----------------timecad = %d----------\r\n",Csma.CadTime);
+		}	
+		if(!LoRapp_Handle.Cad_Detect)
+		{
+			DEBUG(2,"-----------------Cad_Done----------\r\n");
+			SetRtcAlarm(10);  ///设置闹钟时间 必须设置为ms，否则会出现时间偏移导致唤醒成功率不高
+			IntoLowPower(  );  
+		}			
+
+	}
+	
+  PROCESS_END(); 
+}
+
+PROCESS_THREAD(Control_process,ev,data) ///控制设备执行操作
+{
+	
+	PROCESS_BEGIN();
+	
+	while(1)
+	{
+	
+		PROCESS_WAIT_EVENT_UNTIL(ev == CadWakeup);
+		
+		///执行控制设备命令
+		
+		
+		///发送应答命令前同频侦听
+		Radio.Standby(  );
+		
+		LoRaMacSetDeviceClass( CLASS_A );
+		
+		
+		////干净直接发送数据
+		
+		///关闭接收窗口，快速退出
+		LoRaMacTestRxWindowsOn( false );
+		UserAppSend(UNCONFIRMED, "hello", 6, 2);
+		
 #if 0		
 		
 		LoRapp_Handle.Work_Mode = CSMA; ///退出C类状态
@@ -252,41 +321,12 @@ PROCESS_THREAD(Sleep_process,ev,data)
 				i++;
 			}
 		}
-#endif
 		
-		if(!test_sleep)
-		{
-			DEBUG(2, "usertime = %d\r\n",HAL_GetTick(  ) - usertime);
-			
-//			LoRapp_Handle.Work_Mode = CSMA;
-			LoRaMacCsma.CadMode(  );	
-//			delay_us( 240 ); 
-			uint32_t timecad = LoRaMacCsma.SymbolTime(  ) * 1000 + 280; ///tx preamblelen = 1000+2(LoRaMacCsma.SymbolTime+2.8ms)
-			timecad *= 2;
-			delay_us( timecad ); 
-			
-			if(LoRapp_Handle.Cad_Detect)
-			{
-//				Radio.Standby(  );
-//				OnRxWindow2TimerEvent(  ); ///设置接受模式为节点侦听模式
-
-				DEBUG(2,"-----------------timecad = %d----------\r\n",timecad);
-
-				while(LoRapp_Handle.Cad_Detect);
-			}
-					
-			if(!LoRapp_Handle.Cad_Detect)
-			{
-				DEBUG(2,"-----------------Cad_Done----------\r\n");
-				SetRtcAlarm(10);  ///设置闹钟时间 必须设置为ms，否则会出现时间偏移导致唤醒成功率不高
-				IntoLowPower(  );  
-			}			
-		}
+#endif
 	}
-	
+
   PROCESS_END(); 
 }
-
 
 /*******************************************************************************
   * @函数名称	main
@@ -383,10 +423,10 @@ void assert_failed(uint8_t *file, uint32_t line)
 
 
 /*--------------------------------------------------------------------------------------------------------
-                   									     0ooo											
-                   								ooo0     (   )
-                								(   )     ) /
-                								 \ (     (_/
+																						0ooo											
+                   							ooo0       (   )
+                								(   )     	) /
+                								 \ (     	 (_/
                 								  \_)
 ----------------------------------------------------------------------------------------------------------*/
 

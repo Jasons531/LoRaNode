@@ -74,7 +74,7 @@ void SX1276EXTI_Init(void)
 	HAL_GPIO_Init(GPIOB,&GPIO_Initure);
 			
 	//中断线2-PC2
-	HAL_NVIC_SetPriority(EXTI0_1_IRQn,4,0);       //5,0
+	HAL_NVIC_SetPriority(EXTI0_1_IRQn,5,0);       
 	HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);             
 	
 	//中断线3-PC3

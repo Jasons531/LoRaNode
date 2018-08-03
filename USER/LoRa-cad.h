@@ -19,6 +19,11 @@
 
 extern uint32_t RfSend_time;
 
+#define SLEEPTIME						1000
+#define PROTECTIME					100
+
+#define PREAMBLETIME				(SLEEPTIME+PROTECTIME)
+
 typedef struct LoRaCsmas
 {
 	bool 			Iq_Invert;///node to node 
@@ -27,16 +32,17 @@ typedef struct LoRaCsmas
 
 	uint8_t  	DisturbCounter; ///侦听计数
 	uint8_t  	retry;          ///侦听最大次数
-	float   	symbolTime;     ///preamblelen time
+	float   	SymbolTime;     ///preamblelen time
+	uint32_t  CadTime;
 }LoRaCsma_t;
 
 typedef struct //sLoRaMacCsma
 {
-	void ( *ChannelAddFun )(void);
+	void 	( *ChannelAddFun )(void);
 	float ( *SymbolTime )(void);	
-	void ( *ListenAagain )(void);
-	void ( *CadMode )(void);
-	
+	void 	( *ListenAagain )(void);
+	void 	( *CadMode )(void);
+	void  ( *CadTime )(void);
 }LoRaMacCsma_t;
 
 extern LoRaCsma_t Csma;
@@ -55,6 +61,8 @@ void LoRaCadMode( void );
 float LoRaSymbolTime( void );
 
 void LoRaListenAagain( void );
+
+void LoRaCadTime(void);
 
 #endif /* __LoRa-cad_H */
 
