@@ -170,7 +170,7 @@ extern int8_t ChannelsDefaultDatarate;
 //		for(uint8_t i = 0; i < 3; ) ///发送数据机制：发送失败则重发两次数据
 //		{
 //			///上行数据，添加应答机制模式，确保数据稳定性
-//			if(UserAppSend(CONFIRMED, LoRapp_Handle.Send_Buf, LoRapp_Handle.Tx_Len, 2) == 0) ///发送成功后切换进入接收模式Freq + 30mhz
+//			if(User.AppSend(CONFIRMED, LoRapp_Handle.Send_Buf, LoRapp_Handle.Tx_Len, 2) == 0) ///发送成功后切换进入接收模式Freq + 30mhz
 //			{
 //				DEBUG(2,"Wait ACK app_send UpLinkCounter = %d\r\n", LoRaMacGetUpLinkCounter( ));
 //						
@@ -245,11 +245,11 @@ PROCESS_THREAD(Sleep_process,ev,data) ///主进程监听是否CAD唤醒
 		{
 			DEBUG(2, "usertime = %d\r\n",HAL_GetTick(  ) - usertime);
 			
-			LoRaMacCsma.CadMode(  );	
-			
-			LoRaMacCsma.CadTime(  );
-			
-			delay_us( Csma.CadTime ); 
+//			LoRaMacCsma.CadMode(  );	
+//			
+//			LoRaMacCsma.CadTime(  );
+						
+			delay_us( User.CadTime( ) ); 
 			
 			DEBUG(2,"-----------------timecad = %d----------\r\n",Csma.CadTime);
 		}	
@@ -257,7 +257,7 @@ PROCESS_THREAD(Sleep_process,ev,data) ///主进程监听是否CAD唤醒
 		{
 			DEBUG(2,"-----------------Cad_Done----------\r\n");
 			SetRtcAlarm(10);  ///设置闹钟时间 必须设置为ms，否则会出现时间偏移导致唤醒成功率不高
-			IntoLowPower(  );  
+			User.LowPower(  );  
 		}			
 
 	}
@@ -288,10 +288,10 @@ PROCESS_THREAD(Control_process,ev,data) ///控制设备执行操作
 		
 		///关闭接收窗口，快速退出
 		LoRaMacTestRxWindowsOn( false );
-		UserAppSend(UNCONFIRMED, "hello", 6, 2);
+		User.AppSend(UNCONFIRMED, "hello", 6, 2);
 		
 #if 0		
-		
+		////P-CSMA
 		LoRapp_Handle.Work_Mode = CSMA; ///退出C类状态
 		Radio.Standby( );
 		LoRaMacSetDeviceClass( CLASS_A );
@@ -302,7 +302,7 @@ PROCESS_THREAD(Control_process,ev,data) ///控制设备执行操作
 		for(uint8_t i = 0; i < 3; ) ///发送数据机制：发送失败则重发两次数据
 		{
 			///上行数据，添加应答机制模式，确保数据稳定性
-			if(UserAppSend(UNCONFIRMED, LoRapp_Handle.Send_Buf, LoRapp_Handle.Tx_Len, 2) == 0) ///发送成功后切换进入接收模式Freq + 30mhz
+			if(User.AppSend(UNCONFIRMED, LoRapp_Handle.Send_Buf, LoRapp_Handle.Tx_Len, 2) == 0) ///发送成功后切换进入接收模式Freq + 30mhz
 			{
 				DEBUG(2,"Wait ACK app_send UpLinkCounter = %d\r\n", LoRaMacGetUpLinkCounter( ));
 						
@@ -358,21 +358,19 @@ int main(void)
 
 	//	HAL_IWDG_Refresh(&hiwdg); ///看门狗喂狗
 	
-	UserAppInit(app_mac_cb);
-
-	Channel = 3; ///获取信道ID flash读取
+	User.AppInit(app_mac_cb);
 	
-	LoRaMacCsma.ChannelAddFun(  );
+	User.SetLoRaMac(  );
 	
 	//开启侦听模式
-	Radio.Standby( );
-	LoRaMacSetDeviceClass( CLASS_C );
+//	Radio.Standby( );
+//	LoRaMacSetDeviceClass( CLASS_C );
 
-	LoRapp_Handle.Loramac_evt_flag = 0;
+//	LoRapp_Handle.Loramac_evt_flag = 0;
 
-	LoRapp_Handle.FPort = randr( 1, 0xDF );
+//	LoRapp_Handle.FPort = randr( 1, 0xDF );
 
-	LoRapp_Handle.Send_Buf = (uint8_t *)malloc(sizeof(uint8_t)*56); ///使用指针必须分配地址空间，否则会出现HardFault_Handler错误
+//	LoRapp_Handle.Send_Buf = (uint8_t *)malloc(sizeof(uint8_t)*56); ///使用指针必须分配地址空间，否则会出现HardFault_Handler错误
 
 	processset( );
 

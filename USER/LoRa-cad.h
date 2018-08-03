@@ -38,11 +38,11 @@ typedef struct LoRaCsmas
 
 typedef struct //sLoRaMacCsma
 {
-	void 	( *ChannelAddFun )(void);
-	float ( *SymbolTime )(void);	
-	void 	( *ListenAagain )(void);
-	void 	( *CadMode )(void);
-	void  ( *CadTime )(void);
+	void 			( *ChannelAddFun )(void);
+	float 		( *SymbolTime )(void);	
+	void 			( *ListenAagain )(void);
+	void 			( *CadMode )(void);
+	uint32_t  ( *CadTime )(void);
 }LoRaMacCsma_t;
 
 extern LoRaCsma_t Csma;
@@ -52,17 +52,17 @@ extern uint8_t Channel; ///ÐÅµÀºÅ
 
 extern TimerEvent_t CsmaTimer;
 
-void OnCsmaTimerEvent( void );
+void 			OnCsmaTimerEvent( void );
 
-void LoRaChannelAddFun( void );
+void 			LoRaChannelAddFun( void );
 
-void LoRaCadMode( void );
+void 			LoRaCadMode( void );
 
-float LoRaSymbolTime( void );
+float 		LoRaSymbolTime( void );
 
-void LoRaListenAagain( void );
+void 			LoRaListenAagain( void );
 
-void LoRaCadTime(void);
+uint32_t 	LoRaCadTime(void);
 
 #endif /* __LoRa-cad_H */
 

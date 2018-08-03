@@ -10,6 +10,7 @@
 #include <math.h>
 #include "user-app.h"
 #include "board.h"
+#include "binhex.h"
 #include "LoRaMac.h"
 #include "LoRa-cad.h"
 #include "LoRaMac-api-v3.h"
@@ -23,7 +24,7 @@
 /*!
  * Join requests trials duty cycle.
  */
-#define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           	10000 // 10 [s] value in ms
+#define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           		10000 // 10 [s] value in ms
 
 mac_callback_t mac_callback_g;
 
@@ -64,6 +65,9 @@ LoRapp_Handle_t LoRapp_Handle = {false, false,false, false, false, false, 0, 0, 
 /************************¶ÁÈ¡flashÊý¾ÝÉèÖÃÉäÆµ²ÎÊý**************************/
 Get_Flash_Data Get_Flash_Datas = {false, 0, 2, 0, 0, 5};
 
+const user_t User = {UserAppInit, UserSetLoRaMac, IntoLowPower, SleepProcess, ControlProcess, CreateEvent, ReadFlashData, CadTime, UserAppSend};
+
+
 uint8_t AppEui[16] = {0};  
 uint8_t AppKey[32] = {0};
 
@@ -78,10 +82,6 @@ void OnJoinReqTimerEvent( void )
 }
 
 LoRaFrameType_t LoRaFrameType;
-
-extern void RFTXDONE(void);
-
-extern bool test_sleep;
 
 /*!
  * \brief Function to be executed on MAC layer event
@@ -151,17 +151,9 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 		}  
 		  memset(RxInfo.buf, 0, strlen((char *)RxInfo.buf));	
 		
-			///Òì²½Ïß³ÌÖ´ÐÐ
-		
-//			Radio.Standby(  );
-//		
-//			LoRaMacSetDeviceClass( CLASS_A );
-//			
-//			///¹Ø±Õ½ÓÊÕ´°¿Ú£¬¿ìËÙÍË³ö
-//			LoRaMacTestRxWindowsOn( false );
-//			UserAppSend(UNCONFIRMED, "hello", 6, 2);
-		CreateEvent(  );
-		ControlProcess(  );
+		///Òì²½Ïß³ÌÖ´ÐÐ
+		User.CreateEvent(  );
+		User.ControlProcess(  );
 		 
 	}
 	 
@@ -179,7 +171,7 @@ void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )///MAC²ã·
 			LoRaMacSetDeviceClass( CLASS_C );
 			
 			LoRapp_Handle.Cad_Detect = false;
-			SleepProcess(  );		
+			User.SleepProcess(  );		
 //			SendDoneLed( );
 		}
 	}
@@ -230,68 +222,39 @@ void UserAppInit(mac_callback_t mac)
 	mac_callback_g = mac;
 }
 
-char String_Buffer[33]; ///¶ÁÈ¡flashÐ´Èë×Ö·û´®
-
-int PowerXY(int x, int y)
-{
-	if(y == 0)
-	return 1 ;
-	else
-	return x * PowerXY(x, y -1 ) ;
-}
-
-/*!
-*Convert16To10£º16½øÖÆ×ª»¯Îª10½øÖÆ
-*·µ»ØÖµ: 		    10½øÖÆÊýÖµ
+/*
+*UserSetLoRaMac£ºÉèÖÃCLASSÄ£Ê½£¬Í¬Ê±·ÖÅäÄÚ´æ
+*²ÎÊý£º					 ÎÞ
+*·µ»ØÖµ£º				 ÎÞ
 */
-int Convert16To10(int number)
+void UserSetLoRaMac(void)
 {
-	int r = 0 ;
-	int i = 0 ;
-	int result = 0 ;
-	while(number)
-	{
-		r = number % 16 ;
-		result += r * PowerXY(16, i++) ;
-		number /= 16 ;
-	}
-	return result ;
+	
+	Channel = 3; ///»ñÈ¡ÐÅµÀID flash¶ÁÈ¡
+	
+	LoRaMacCsma.ChannelAddFun(  );
+
+	//¿ªÆôÕìÌýÄ£Ê½
+	Radio.Standby( );
+	LoRaMacSetDeviceClass( CLASS_C );
+
+	LoRapp_Handle.Loramac_evt_flag = 0;
+
+	LoRapp_Handle.FPort = randr( 1, 0xDF );
+
+	LoRapp_Handle.Send_Buf = (uint8_t *)malloc(sizeof(uint8_t)*56); ///Ê¹ÓÃÖ¸Õë±ØÐë·ÖÅäµØÖ·¿Õ¼ä£¬·ñÔò»á³öÏÖHardFault_Handler´íÎó
 }
 
-/*!
-*Read_DecNumber£º×Ö·û´®ÖÐµÄÊý×Ö×ª»¯Îª10½øÖÆ
-*·µ»ØÖµ: 		     10½øÖÆÊýÖµ
+/*
+*CadTime£ºÓÃ»§»ñÈ¡CADÊ±¼ä
+*²ÎÊý£º		ÎÞ
+*·µ»ØÖµ£º CADÊ±¼ä
 */
-uint32_t ReadDecNumber(char *str)
+uint32_t CadTime(void)
 {
-	uint32_t value;
-
-	if (! str)
-	{
-			return 0;
-	}
-	value = 0;
-	while ((*str >= '0') && (*str <= '9'))
-	{
-			value = value*10 + (*str - '0');
-			str++;
-	}
-	return value;
-}
-
-/*!
-*String_Conversion£º×Ö·û´®×ª»»Îª16½øÖÆ
-*·µ»ØÖµ: 		        ÎÞ
-*/
-void StringConversion(char *str, uint8_t *src, uint8_t len)
-{
- volatile int i,v;
-			
- for(i=0; i<len/2; i++)
- {
-	sscanf(str+i*2,"%2X",&v);
-	src[i]=(uint8_t)v;
-}
+	LoRaMacCsma.CadMode(  );	
+	
+	return LoRaMacCsma.CadTime(  );
 }
 
 /*!
@@ -392,11 +355,6 @@ int UserAppSend( LoRaFrameType_t frametype, uint8_t *buf, int size, int retry)
 			break;
 	}
 	return 0;
-}
-
-uint32_t app_get_devaddr(void)
-{
-	return DevAddr;
 }
 
 /*

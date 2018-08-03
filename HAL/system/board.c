@@ -87,7 +87,7 @@ void BoardInitMcu( void )
     HAL_NVIC_EnableIRQ(USART4_5_IRQn);
     
     /******************ø’ÀŸ≥ı ºªØ*****************/
-		ReadFlashData(  );
+		User.FlashData(  );
 
 		clock_init(  );
 				

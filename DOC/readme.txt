@@ -142,4 +142,7 @@ LoRaMacSetReceiveDelay2( 200 );  ///窗口2开启时间
 	 OnRadioRxTimeout
 	 
 	 划分频域图表
+	 
+	 Program Size: Code=67058 RO-data=5398 RW-data=788 ZI-data=6268  
+	 
 

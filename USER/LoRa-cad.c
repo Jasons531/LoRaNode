@@ -108,8 +108,8 @@ void LoRaChannelAddFun( void )
 
 /*
  * LoRaCadMode:	 设置为CAD
- * 参数:	     无
- * 返回值:		 无
+ * 参数:	     	 无
+ * 返回值:		 	 无
 */
 void LoRaCadMode(void)
 {
@@ -165,8 +165,8 @@ void LoRaListenAagain(void)
 /*
 *	LoRaCadTime ：获取CAD总的时间
 */
-void LoRaCadTime(void)
+uint32_t LoRaCadTime(void)
 {
-		Csma.CadTime = LoRaMacCsma.SymbolTime(  ) * 1000 + 280; ///tx preamblelen = 1000+2(LoRaMacCsma.SymbolTime+2.8ms)
-		Csma.CadTime *= 2;
+	Csma.CadTime = LoRaMacCsma.SymbolTime(  ) * 1000 + 280; ///tx preamblelen = 1000+2(LoRaMacCsma.SymbolTime+2.8ms)
+	return Csma.CadTime *= 2;
 }

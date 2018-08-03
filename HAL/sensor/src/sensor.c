@@ -338,7 +338,7 @@ void SamplingData(void)
 	if (CheckBattery()<=3)					//电池电量低
 	{
 		DEBUG(2,"battery extremely low %dmV;enter standby\r\n",LoRapp_Handle.Battery*6+3600);
-		IntoLowPower( ); 					//电池电量特别低，直接重置进入休眠
+		User.LowPower( ); 					//电池电量特别低，直接重置进入休眠
 	}
     
     DEBUG(2,"bettry:%d;\r\n",LoRapp_Handle.Battery);

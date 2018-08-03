@@ -17,9 +17,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define AT_MODULE_PORT					(10)    ///FPort
-
-#define AESKEY_LEN                  	(16)
+#define AESKEY_LEN                  		(16)
 
 
 ///128KB==0X1F400    0x0800000 ---- 0x0801F400
@@ -31,7 +29,7 @@
  */
 #define LORAMAC_DEFAULT_DATARATE        0x0801F3D8
 
-#define SET_SLEEPT_ADDR					0x0801F3E0  		///设置休眠时间 0x0801F3E8 ---- 0x0801F3E9
+#define SET_SLEEPT_ADDR									0x0801F3E0  		///设置休眠时间 0x0801F3E8 ---- 0x0801F3E9
 #define SET_ADR_ADDR                    0x0801F3DC	    ///ADR
 
 
@@ -114,22 +112,22 @@ typedef enum Work_Modes
  */
 typedef struct LoRapp_Handles
 {
-	bool   		Ack_Recived;   ///ACK应答标志
-	bool 			Hardware_Exist_GPS;	
-	bool			Send_again;	///RF ACK Fail Send Again 
-  bool    	OnRxWindow1;
-	bool 			Cad_Done;
-  bool 			Cad_Detect;
+	bool   			Ack_Recived;   ///ACK应答标志
+	bool 				Hardware_Exist_GPS;	
+	bool				Send_again;	///RF ACK Fail Send Again 
+  bool    		OnRxWindow1;
+	bool 				Cad_Done;
+  bool 				Cad_Detect;
 	
-	uint8_t 	Loramac_evt_flag;          ///lora发送状态位
-	uint8_t 	Tx_Len;	///发送数据长度
-	uint8_t   FPort; ///FPort
-	uint8_t 	*Send_Buf;
-	uint8_t		ADR_Datarate;   ///获取到ADR时SF更改
-	uint8_t   default_datarate;  ///默认datarate
-	uint8_t   Rechargeing;  ///是否充电标志
-	uint8_t   Battery;  ///电量
-  uint8_t   Send_Counter;
+	uint8_t 		Loramac_evt_flag;          ///lora发送状态位
+	uint8_t 		Tx_Len;	///发送数据长度
+	uint8_t   	FPort; ///FPort
+	uint8_t 		*Send_Buf;
+	uint8_t			ADR_Datarate;   ///获取到ADR时SF更改
+	uint8_t   	default_datarate;  ///默认datarate
+	uint8_t   	Rechargeing;  ///是否充电标志
+	uint8_t   	Battery;  ///电量
+  uint8_t   	Send_Counter;
 	
 	Work_Mode_t Work_Mode;
 	Rx_State_t 	Rx_States;     ///射频发送状态	
@@ -138,49 +136,57 @@ typedef struct LoRapp_Handles
 /*****************读取flash获取ADR状态********************/
 
 typedef struct{
-	bool LoRaMacSetAdrOnState;
-	char ReadSetAdar_Addr;
-	uint8_t datarate;
-	uint8_t sleep_times;   ///休眠时间默认24S
-	uint8_t min_datarate;
-	uint8_t max_datarate;
+	bool 				LoRaMacSetAdrOnState;
+	char 				ReadSetAdar_Addr;
+	uint8_t 		datarate;
+	uint8_t 		sleep_times;   ///休眠时间默认24S
+	uint8_t 		min_datarate;
+	uint8_t 		max_datarate;
 }Get_Flash_Data;
+
+typedef void (*mac_callback_t) (mac_evt_t mac_evt, void *msg);
+
+typedef struct u_user
+{
+	void 			(*AppInit)(mac_callback_t mac);
+	
+	void      (*SetLoRaMac)(void);
+
+	void  		(*LowPower)(void);
+
+	void  		(*SleepProcess)(void);
+
+	void  		(*ControlProcess)(void);
+
+	void  		(*CreateEvent)(void);
+	
+	uint8_t 	(*FlashData) (void);
+	
+	uint32_t  (*CadTime)(void);
+
+	int       (*AppSend)( LoRaFrameType_t frametype, uint8_t *buf, int size, int retry);
+
+}user_t;
 
 extern Get_Flash_Data Get_Flash_Datas;  ///读取flash参数
 
 extern LoRapp_Handle_t LoRapp_Handle;
 
-typedef void (*mac_callback_t) (mac_evt_t mac_evt, void *msg);
-
-int PowerXY(int x, int y);
-
-int Convert16To10(int number);
-
-uint32_t ReadDecNumber(char *str);
-
-void StringConversion(char *str, uint8_t *src, uint8_t len);
+extern const user_t User;
 
 uint8_t ReadFlashData(void);
 
 void UserAppInit(mac_callback_t mac);
 
-int UserAppSend( LoRaFrameType_t frametype, uint8_t *buf, int size, int retry);
+void UserSetLoRaMac(void);
 
-uint32_t app_get_devaddr(void);
+uint32_t CadTime(void);
+
+int UserAppSend( LoRaFrameType_t frametype, uint8_t *buf, int size, int retry);
 
 void OnReportTimerEvent( void );
 
 void IntoLowPower(void);
-
-void SendDoneLed(void);
-
-void RxLed(void);
-
-void ErrorLed(void);
-
-void PowerEnableLed(void);
-
-void PowerDisbleLed(void);
 
 void SleepProcess(void);
 
